@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guess the Station</title>
+<style>
+  :root{
+    --ground:#0b0f0d;
+    --panel:#141a17;
+    --panel-raised:#1a2320;
+    --bezel:#0e1412;
+    --amber:#ffb020;
+    --amber-bright:#ffd479;
+    --amber-dim:#6b4d1e;
+    --amber-glow:rgba(255,176,32,.55);
+    --steel:#8fa39c;
+    --steel-dim:#3d4a44;
+    --ink:#eef1ee;
+    --danger-line:#4a5650;
+
+    --nsl:#d42e12; --ewl:#009645; --nel:#9900aa; --ccl:#fa9e0d; --dtl:#005ec4; --tel:#9d5b25;
+
+    --font-display: ui-monospace, "Cascadia Mono", "SF Mono", "Roboto Mono", Consolas, monospace;
+    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ margin:0; }
+
+  main.board{
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px 64px;
+    background:
+      radial-gradient(ellipse at 50% -10%, #182420 0%, var(--ground) 55%);
+    font-family:var(--font-body);
+    color:var(--ink);
+  }
+
+  .bezel{
+    position:relative;
+    width:100%;
+    max-width:640px;
+    background:var(--bezel);
+    border-radius:18px;
+    padding:28px 28px 24px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.04) inset,
+      0 30px 60px -20px rgba(0,0,0,.7),
+      0 0 0 1px #050705;
+  }
+  .bezel::before{
+    content:"";
+    position:absolute; inset:10px 10px auto 10px; height:40%;
+    border-radius:14px 14px 40% 40%/14px 14px 100% 100%;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  .rivet{
+    position:absolute; width:6px; height:6px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #5a6864, #1c2320 70%);
+    box-shadow:0 1px 1px rgba(0,0,0,.6);
+  }
+  .rivet.tl{ top:12px; left:12px; } .rivet.tr{ top:12px; right:12px; }
+  .rivet.bl{ bottom:12px; left:12px; } .rivet.br{ bottom:12px; right:12px; }
+
+  .board-head{ position:relative; text-align:center; margin-bottom:18px; }
+  .eyebrow{
+    margin:0 0 8px; font-family:var(--font-display); font-size:11px; letter-spacing:.18em;
+    color:var(--steel); text-transform:uppercase;
+  }
+  .title{
+    margin:0 0 10px; font-family:var(--font-display); font-weight:700;
+    font-size:clamp(24px,5.2vw,34px); letter-spacing:.06em; color:var(--amber);
+    text-wrap:balance;
+    text-shadow:0 0 6px var(--amber-glow), 0 0 22px rgba(255,176,32,.25);
+  }
+  .subtitle{
+    margin:0 auto; max-width:46ch; font-size:14.5px; line-height:1.55; color:var(--steel);
+  }
+
+  details.legend{
+    margin:0 0 18px; background:var(--panel); border:1px solid var(--steel-dim);
+    border-radius:10px; padding:10px 14px;
+  }
+  details.legend summary{
+    cursor:pointer; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--steel); font-family:var(--font-display);
+  }
+  details.legend summary::marker{ color:var(--amber-dim); }
+  .legend-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;
+    margin-top:12px;
+  }
+  .legend-item{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink); }
+  .legend-icon{ flex:none; width:28px; height:28px; display:grid; place-items:center; }
+
+  form.guess-form{ display:flex; gap:10px; margin-bottom:6px; }
+  .combobox{ position:relative; flex:1; }
+  #guessInput{
+    width:100%; padding:12px 14px; border-radius:8px; border:1px solid var(--steel-dim);
+    background:var(--panel); color:var(--ink); font-size:15px; font-family:var(--font-body);
+    outline:none;
+  }
+  #guessInput::placeholder{ color:var(--steel); opacity:.8; }
+  #guessInput:focus-visible{ border-color:var(--amber); box-shadow:0 0 0 3px rgba(255,176,32,.22); }
+
+  .suggestions{
+    position:absolute; z-index:5; top:calc(100% + 6px); left:0; right:0;
+    margin:0; padding:4px; list-style:none;
+    background:var(--panel-raised); border:1px solid var(--steel-dim); border-radius:8px;
+    max-height:220px; overflow-y:auto;
+    box-shadow:0 12px 24px -8px rgba(0,0,0,.6);
+  }
+  .suggestions[hidden]{ display:none; }
+  .suggestions li{
+    padding:9px 10px; border-radius:6px; font-size:14px; cursor:pointer; color:var(--ink);
+  }
+  .suggestions li[aria-selected="true"]{ background:var(--amber-dim); color:var(--amber-bright); }
+
+  .guess-btn{
+    flex:none; padding:0 20px; border-radius:8px; border:1px solid var(--amber-dim);
+    background:linear-gradient(180deg,#2a2013,#1c160c); color:var(--amber-bright);
+    font-family:var(--font-display); font-size:13px; letter-spacing:.08em; text-transform:uppercase;
+    cursor:pointer;
+  }
+  .guess-btn:hover{ border-color:var(--amber); }
+  .guess-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .guess-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .input-error{
+    min-height:18px; margin:6px 2px 10px; font-size:12.5px; color:#e8a35a;
+  }
+
+  .status-row{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .status-chip{
+    font-family:var(--font-display); font-size:12px; letter-spacing:.08em; color:var(--steel);
+    text-transform:uppercase;
+  }
+  .reset-btn{
+    background:none; border:1px solid var(--steel-dim); color:var(--steel);
+    font-family:var(--font-display); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+    padding:7px 12px; border-radius:6px; cursor:pointer;
+  }
+  .reset-btn:hover{ color:var(--ink); border-color:var(--steel); }
+  .reset-btn.primary{ color:var(--amber-bright); border-color:var(--amber-dim); }
+  .reset-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+
+  ul.guesses{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+
+  .row{
+    display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px;
+    background:var(--panel); border:1px solid var(--steel-dim); border-radius:10px;
+    padding:10px 12px 10px 14px;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .row{ animation:rowIn .28s ease both; }
+  }
+  @keyframes rowIn{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
+
+  .row.arrived{ border-color:var(--amber); box-shadow:0 0 0 1px var(--amber) inset, 0 0 18px -4px var(--amber-glow); }
+
+  .row-name{ min-width:0; }
+  .row-name .name{ font-size:14.5px; color:var(--ink); font-weight:600; display:block; }
+  .row-name .badges{ display:flex; gap:5px; margin-top:4px; flex-wrap:wrap; }
+  .line-badge{
+    font-family:var(--font-display); font-size:9.5px; letter-spacing:.03em; padding:1px 5px;
+    border-radius:3px; color:#0b0f0d; font-weight:700;
+  }
+
+  .tiles{ display:flex; gap:14px; align-items:center; }
+  .tile{ display:flex; flex-direction:column; align-items:center; gap:3px; min-width:52px; }
+  .tile-cap{ font-family:var(--font-display); font-size:9px; letter-spacing:.08em; color:var(--steel); text-transform:uppercase; }
+
+  .compass{ position:relative; width:34px; height:34px; }
+  .compass .ring{
+    position:absolute; inset:0; border-radius:50%; border:1.5px solid var(--steel-dim);
+  }
+  .compass .n-tick{
+    position:absolute; top:-2px; left:50%; width:2px; height:5px; background:var(--steel);
+    transform:translateX(-50%);
+  }
+  .compass .arrow{
+    position:absolute; inset:0; margin:auto; width:12px; height:12px;
+    background:var(--amber);
+    clip-path:polygon(50% 4%, 88% 88%, 50% 66%, 12% 88%);
+    filter:drop-shadow(0 0 5px var(--amber-glow));
+    transform:rotate(var(--bearing,0deg));
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  @media (prefers-reduced-motion: reduce){ .compass .arrow{ transition:none; } }
+  .compass.hit .arrow{ display:none; }
+  .compass .check{ position:absolute; inset:0; margin:auto; display:none; }
+  .compass.hit .check{ display:block; }
+  .compass.hit .ring{ border-color:var(--amber); }
+
+  .stopcount{ align-items:center; }
+  .stopcount .num{
+    font-family:var(--font-display); font-weight:700; font-size:20px; color:var(--amber);
+    font-variant-numeric:tabular-nums; line-height:1;
+    text-shadow:0 0 6px var(--amber-glow);
+  }
+  .ticks{ display:flex; gap:2px; margin-top:2px; }
+  .ticks span{ width:4px; height:8px; border-radius:1px; background:var(--amber-dim); }
+  .ticks span.lit{ background:var(--amber); }
+
+  .lineflag{ flex-direction:row; gap:4px; min-width:auto; }
+  .lineflag .dots{ display:flex; gap:4px; }
+  .dot{ width:13px; height:13px; border-radius:50%; border:1.5px solid var(--steel-dim); background:var(--panel-raised); }
+  .dot.lit{ border-color:transparent; box-shadow:0 0 6px currentColor; }
+
+  .win-banner{
+    margin-top:16px; text-align:center; padding:20px 16px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--amber-dim);
+  }
+  .win-eyebrow{
+    margin:0 0 6px; font-family:var(--font-display); font-size:12px; letter-spacing:.2em; color:var(--amber);
+  }
+  .win-station{
+    margin:0 0 8px; font-family:var(--font-display); font-size:22px; color:var(--amber-bright);
+    text-shadow:0 0 8px var(--amber-glow);
+  }
+  .win-meta{ margin:0 0 14px; font-size:13px; color:var(--steel); }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
+  }
+
+  @media (max-width:480px){
+    .row{ grid-template-columns:1fr; }
+    .tiles{ justify-content:space-between; }
+  }
+</style>
+</head>
+<body>
+
+<main class="board">
+  <div class="bezel">
+    <span class="rivet tl"></span><span class="rivet tr"></span><span class="rivet bl"></span><span class="rivet br"></span>
+
+    <header class="board-head">
+      <p class="eyebrow">SG MRT SYSTEM &middot; CONCOURSE DISPLAY</p>
+      <h1 class="title">GUESS THE STATION</h1>
+      <p class="subtitle">A station is hidden somewhere on the network. Guess one &mdash; the board lights up direction, distance and line to steer your next guess.</p>
+    </header>
+
+    <details class="legend">
+      <summary>How to read the board</summary>
+      <div class="legend-grid">
+        <div class="legend-item">
+          <span class="legend-icon">
+            <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#8fa39c" stroke-width="1.5"/><polygon points="13,3 18,20 13,16 8,20" fill="#ffb020"/></svg>
+          </span>
+          <span>Arrow points toward the hidden station</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-icon">
+            <svg width="26" height="26" viewBox="0 0 26 26"><text x="13" y="18" text-anchor="middle" font-family="ui-monospace,monospace" font-size="15" fill="#ffb020" font-weight="700">4</text></svg>
+          </span>
+          <span>Stops away by shortest path</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-icon">
+            <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="9" cy="13" r="6" fill="#d42e12"/><circle cx="18" cy="13" r="6" fill="none" stroke="#3d4a44" stroke-width="1.5"/></svg>
+          </span>
+          <span>Lit dot = your guess shares a line with the target</span>
+        </div>
+      </div>
+    </details>
+
+    <form class="guess-form" id="guessForm" autocomplete="off">
+      <div class="combobox">
+        <input id="guessInput" type="text" placeholder="Type a station name&hellip;" role="combobox"
+               aria-expanded="false" aria-autocomplete="list" aria-controls="suggestions" aria-label="MRT station guess" />
+        <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+      </div>
+      <button type="submit" class="guess-btn" id="guessBtn">Guess</button>
+    </form>
+    <p class="input-error" id="inputError" role="alert"></p>
+
+    <div class="status-row">
+      <span class="status-chip" id="guessCount">0 guesses</span>
+      <button type="button" class="reset-btn" id="resetBtn">New puzzle</button>
+    </div>
+
+    <ul class="guesses" id="guessList"></ul>
+
+    <div class="win-banner" id="winBanner" hidden>
+      <p class="win-eyebrow">ARRIVED</p>
+      <p class="win-station" id="winStation"></p>
+      <p class="win-meta" id="winMeta"></p>
+      <button type="button" class="reset-btn primary" id="playAgainBtn">Play again</button>
+    </div>
+  </div>
+</main>
+
+<div class="sr-only" aria-live="polite" id="srLive"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LINE_COLORS = { NSL:'#d42e12', EWL:'#009645', NEL:'#9900aa', CCL:'#fa9e0d', DTL:'#005ec4', TEL:'#9d5b25' };
+
+  var COORDS = {
+    "Jurong East":[140,540], "Bukit Batok":[165,480], "Choa Chu Kang":[150,400], "Kranji":[230,240],
+    "Woodlands":[280,150], "Yishun":[380,210], "Ang Mo Kio":[460,300], "Bishan":[475,370],
+    "Toa Payoh":[480,420], "Novena":[470,470], "Newton":[460,505], "Orchard":[450,540],
+    "Dhoby Ghaut":[440,585], "City Hall":[460,610], "Raffles Place":[470,635], "Marina Bay":[480,675],
+
+    "Boon Lay":[60,470], "Clementi":[230,545], "Buona Vista":[300,565], "Queenstown":[335,600],
+    "Tiong Bahru":[395,635], "Outram Park":[425,655], "Bugis":[490,555], "Aljunied":[540,490],
+    "Paya Lebar":[560,460], "Bedok":[630,410], "Tanah Merah":[660,395], "Tampines":[720,355],
+    "Pasir Ris":[770,325], "Expo":[700,405], "Changi Airport":[745,395],
+
+    "Chinatown":[445,650], "Clarke Quay":[450,625], "Little India":[455,570], "Farrer Park":[470,545],
+    "Serangoon":[530,455], "Hougang":[565,400], "Sengkang":[590,365], "Punggol":[620,325],
+    "HarbourFront":[400,715],
+
+    "Botanic Gardens":[400,470], "Caldecott":[445,420], "MacPherson":[545,455], "Promenade":[480,580],
+
+    "Bukit Panjang":[200,300], "Ubi":[560,430], "Bedok North":[610,420],
+
+    "Springleaf":[330,225], "Gardens by the Bay":[520,690]
+  };
+
+  var LINE_SEQUENCES = [
+    {code:'NSL', seq:["Jurong East","Bukit Batok","Choa Chu Kang","Kranji","Woodlands","Yishun","Ang Mo Kio","Bishan","Toa Payoh","Novena","Newton","Orchard","Dhoby Ghaut","City Hall","Raffles Place","Marina Bay"]},
+    {code:'EWL', seq:["Boon Lay","Jurong East","Clementi","Buona Vista","Queenstown","Tiong Bahru","Outram Park","Raffles Place","City Hall","Bugis","Aljunied","Paya Lebar","Bedok","Tanah Merah","Tampines","Pasir Ris"]},
+    {code:'EWL', seq:["Tanah Merah","Expo","Changi Airport"]},
+    {code:'NEL', seq:["HarbourFront","Outram Park","Chinatown","Clarke Quay","Dhoby Ghaut","Little India","Farrer Park","Serangoon","Hougang","Sengkang","Punggol"]},
+    {code:'CCL', seq:["HarbourFront","Buona Vista","Botanic Gardens","Caldecott","Bishan","Serangoon","MacPherson","Paya Lebar","Promenade","Dhoby Ghaut"]},
+    {code:'DTL', seq:["Bukit Panjang","Botanic Gardens","Newton","Little India","Bugis","Promenade","Chinatown","MacPherson","Ubi","Bedok North","Expo"]},
+    {code:'TEL', seq:["Woodlands","Springleaf","Caldecott","Newton","Orchard","Outram Park","Marina Bay","Gardens by the Bay"]}
+  ];
+
+  var stationLines = {};
+  var graph = {};
+  LINE_SEQUENCES.forEach(function(line){
+    line.seq.forEach(function(name, i){
+      if(!stationLines[name]) stationLines[name] = new Set();
+      stationLines[name].add(line.code);
+      if(!graph[name]) graph[name] = new Set();
+      if(i > 0){
+        var prev = line.seq[i-1];
+        graph[name].add(prev);
+        graph[prev].add(name);
+      }
+    });
+  });
+
+  var STATION_NAMES = Object.keys(COORDS).sort();
+
+  function bfsDistance(a, b){
+    if(a === b) return 0;
+    var visited = new Set([a]);
+    var queue = [[a,0]];
+    while(queue.length){
+      var cur = queue.shift();
+      var neighbors = graph[cur[0]] || new Set();
+      for(var n of neighbors){
+        if(n === b) return cur[1] + 1;
+        if(!visited.has(n)){
+          visited.add(n);
+          queue.push([n, cur[1]+1]);
+        }
+      }
+    }
+    return -1;
+  }
+
+  function bearing(a, b){
+    var dx = COORDS[b][0] - COORDS[a][0];
+    var dy = COORDS[b][1] - COORDS[a][1];
+    var deg = Math.atan2(dx, -dy) * 180 / Math.PI;
+    return (deg + 360) % 360;
+  }
+
+  function compassLabel(deg){
+    var dirs = ['N','NE','E','SE','S','SW','W','NW'];
+    return dirs[Math.round(deg / 45) % 8];
+  }
+
+  var target = null;
+  var guessed = new Set();
+  var guessCount = 0;
+  var won = false;
+
+  var els = {
+    input: document.getElementById('guessInput'),
+    form: document.getElementById('guessForm'),
+    suggestions: document.getElementById('suggestions'),
+    error: document.getElementById('inputError'),
+    list: document.getElementById('guessList'),
+    count: document.getElementById('guessCount'),
+    resetBtn: document.getElementById('resetBtn'),
+    guessBtn: document.getElementById('guessBtn'),
+    winBanner: document.getElementById('winBanner'),
+    winStation: document.getElementById('winStation'),
+    winMeta: document.getElementById('winMeta'),
+    playAgainBtn: document.getElementById('playAgainBtn'),
+    srLive: document.getElementById('srLive')
+  };
+
+  var activeIndex = -1;
+  var currentMatches = [];
+
+  function newPuzzle(){
+    target = STATION_NAMES[Math.floor(Math.random() * STATION_NAMES.length)];
+    guessed = new Set();
+    guessCount = 0;
+    won = false;
+    els.list.innerHTML = '';
+    els.winBanner.hidden = true;
+    els.input.value = '';
+    els.input.disabled = false;
+    els.guessBtn.disabled = false;
+    els.error.textContent = '';
+    updateCount();
+    els.input.focus();
+  }
+
+  function updateCount(){
+    els.count.textContent = guessCount + (guessCount === 1 ? ' guess' : ' guesses');
+  }
+
+  function closeSuggestions(){
+    els.suggestions.hidden = true;
+    els.suggestions.innerHTML = '';
+    els.input.setAttribute('aria-expanded', 'false');
+    els.input.removeAttribute('aria-activedescendant');
+    activeIndex = -1;
+    currentMatches = [];
+  }
+
+  function renderSuggestions(query){
+    var q = query.trim().toLowerCase();
+    if(!q){ closeSuggestions(); return; }
+    currentMatches = STATION_NAMES.filter(function(n){
+      return n.toLowerCase().indexOf(q) !== -1 && !guessed.has(n);
+    }).slice(0, 6);
+    if(!currentMatches.length){ closeSuggestions(); return; }
+    els.suggestions.innerHTML = '';
+    currentMatches.forEach(function(name, i){
+      var li = document.createElement('li');
+      li.textContent = name;
+      li.id = 'opt-' + i;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
+      li.addEventListener('mousedown', function(e){
+        e.preventDefault();
+        selectSuggestion(name);
+      });
+      els.suggestions.appendChild(li);
+    });
+    activeIndex = -1;
+    els.suggestions.hidden = false;
+    els.input.setAttribute('aria-expanded', 'true');
+  }
+
+  function selectSuggestion(name){
+    els.input.value = name;
+    closeSuggestions();
+    els.input.focus();
+  }
+
+  function moveActive(delta){
+    if(!currentMatches.length) return;
+    var items = els.suggestions.querySelectorAll('li');
+    if(activeIndex >= 0) items[activeIndex].setAttribute('aria-selected', 'false');
+    activeIndex = (activeIndex + delta + items.length) % items.length;
+    items[activeIndex].setAttribute('aria-selected', 'true');
+    els.input.setAttribute('aria-activedescendant', items[activeIndex].id);
+  }
+
+  els.input.addEventListener('input', function(){
+    els.error.textContent = '';
+    renderSuggestions(els.input.value);
+  });
+
+  els.input.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowDown'){ e.preventDefault(); if(els.suggestions.hidden) renderSuggestions(els.input.value); else moveActive(1); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); moveActive(-1); }
+    else if(e.key === 'Escape'){ closeSuggestions(); }
+    else if(e.key === 'Enter'){
+      if(!els.suggestions.hidden && activeIndex >= 0){
+        e.preventDefault();
+        selectSuggestion(currentMatches[activeIndex]);
+      }
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if(!els.suggestions.contains(e.target) && e.target !== els.input) closeSuggestions();
+  });
+
+  function makeCompassTile(deg, isHit){
+    var wrap = document.createElement('div');
+    wrap.className = 'tile compass-tile';
+    var label = isHit ? 'arrived' : compassLabel(deg);
+    wrap.innerHTML =
+      '<div class="compass' + (isHit ? ' hit' : '') + '" style="--bearing:' + deg + 'deg" ' +
+      'role="img" aria-label="Direction: ' + label + '">' +
+        '<div class="ring"></div>' +
+        '<div class="n-tick"></div>' +
+        '<div class="arrow"></div>' +
+        '<svg class="check" width="16" height="16" viewBox="0 0 16 16"><polyline points="2,8 6,12 14,3" fill="none" stroke="#ffb020" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</div>' +
+      '<span class="tile-cap">' + label + '</span>';
+    return wrap;
+  }
+
+  function makeStopTile(distance){
+    var wrap = document.createElement('div');
+    wrap.className = 'tile stopcount';
+    var capped = Math.min(distance, 10);
+    var ticks = '';
+    for(var i = 0; i < capped; i++) ticks += '<span class="lit"></span>';
+    for(var j = capped; j < 10; j++) ticks += '<span></span>';
+    wrap.innerHTML =
+      '<span class="num" aria-hidden="true">' + distance + '</span>' +
+      '<div class="ticks" aria-hidden="true">' + ticks + '</div>' +
+      '<span class="tile-cap">' + (distance === 1 ? 'stop' : 'stops') + '</span>';
+    wrap.setAttribute('role', 'img');
+    wrap.setAttribute('aria-label', distance + (distance === 1 ? ' stop away' : ' stops away'));
+    return wrap;
+  }
+
+  function makeLineTile(guessName, targetName){
+    var guessLines = stationLines[guessName];
+    var targetLines = stationLines[targetName];
+    var shared = [];
+    guessLines.forEach(function(l){ if(targetLines.has(l)) shared.push(l); });
+    var wrap = document.createElement('div');
+    wrap.className = 'tile lineflag';
+    var dots = '';
+    if(shared.length){
+      shared.forEach(function(code){
+        dots += '<span class="dot lit" style="color:' + LINE_COLORS[code] + ';background:' + LINE_COLORS[code] + '" title="' + code + '"></span>';
+      });
+    } else {
+      dots += '<span class="dot" title="No shared line"></span>';
+    }
+    wrap.innerHTML = '<div class="dots" role="img" aria-label="' + (shared.length ? 'Shares line: ' + shared.join(', ') : 'No shared line') + '">' + dots + '</div>' +
+      '<span class="tile-cap">' + (shared.length ? 'same line' : 'diff line') + '</span>';
+    return wrap;
+  }
+
+  function badgesFor(name){
+    var lines = Array.from(stationLines[name]);
+    return lines.map(function(code){
+      return '<span class="line-badge" style="background:' + LINE_COLORS[code] + '">' + code + '</span>';
+    }).join('');
+  }
+
+  function announce(text){
+    els.srLive.textContent = text;
+  }
+
+  function submitGuess(name){
+    if(!STATION_NAMES.includes(name)){
+      els.error.textContent = 'Not a recognized MRT station on this board — check the spelling.';
+      return;
+    }
+    if(guessed.has(name)){
+      els.error.textContent = 'Already guessed that one — try another station.';
+      return;
+    }
+    els.error.textContent = '';
+    guessed.add(name);
+    guessCount++;
+    updateCount();
+
+    var distance = bfsDistance(name, target);
+    var isHit = distance === 0;
+    var deg = isHit ? 0 : bearing(name, target);
+
+    var row = document.createElement('li');
+    row.className = 'row' + (isHit ? ' arrived' : '');
+
+    var nameCol = document.createElement('div');
+    nameCol.className = 'row-name';
+    nameCol.innerHTML = '<span class="name">' + name + '</span><div class="badges">' + badgesFor(name) + '</div>';
+
+    var tiles = document.createElement('div');
+    tiles.className = 'tiles';
+    tiles.appendChild(makeCompassTile(deg, isHit));
+    tiles.appendChild(makeStopTile(distance));
+    tiles.appendChild(makeLineTile(name, target));
+
+    row.appendChild(nameCol);
+    row.appendChild(tiles);
+    els.list.insertBefore(row, els.list.firstChild);
+
+    announce(name + ': ' + (isHit ? 'arrived at the hidden station.' : distance + (distance === 1 ? ' stop away, direction ' : ' stops away, direction ') + compassLabel(deg) + ', ' + (Array.from(stationLines[name]).some(function(l){return stationLines[target].has(l);}) ? 'same line as target.' : 'no shared line.')));
+
+    if(isHit){
+      won = true;
+      els.input.disabled = true;
+      els.guessBtn.disabled = true;
+      els.winStation.textContent = target;
+      els.winMeta.textContent = 'Found in ' + guessCount + (guessCount === 1 ? ' guess.' : ' guesses.');
+      els.winBanner.hidden = false;
+    }
+
+    els.input.value = '';
+    closeSuggestions();
+  }
+
+  els.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(won) return;
+    var val = els.input.value.trim();
+    if(!val) return;
+    var match = STATION_NAMES.find(function(n){ return n.toLowerCase() === val.toLowerCase(); });
+    submitGuess(match || val);
+  });
+
+  els.resetBtn.addEventListener('click', newPuzzle);
+  els.playAgainBtn.addEventListener('click', newPuzzle);
+
+  newPuzzle();
+})();
+</script>
+
+</body>
+</html>
