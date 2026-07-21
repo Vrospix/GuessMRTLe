@@ -1478,7 +1478,8 @@
       ? 'GuessMRTLe Daily #' + dailyNumberForDate(sgtDateString(new Date())) + ' 🚇'
       : 'GuessMRTLe Practice 🚇';
     return header + '\n' + buildResultScoreLine() +
-      '\n\n' + buildResultGridLines().join('\n');
+      '\n\n' + buildResultGridLines().join('\n') +
+      '\n\nhttps://vrospix.github.io/GuessMRTLe/';
   }
 
   function copyViaExecCommand(text){
