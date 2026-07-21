@@ -82,6 +82,25 @@
     margin:0 auto; max-width:46ch; font-size:14.5px; line-height:1.55; color:var(--steel);
   }
 
+  .mode-row{
+    display:flex; justify-content:center; gap:8px; margin:16px 0 8px;
+  }
+  .mode-tab{
+    padding:8px 22px; border-radius:8px; border:1px solid var(--steel-dim); background:var(--panel);
+    color:var(--steel); font-family:var(--font-display); font-size:12.5px; letter-spacing:.08em;
+    text-transform:uppercase; cursor:pointer;
+  }
+  .mode-tab:hover{ color:var(--ink); border-color:var(--steel); }
+  .mode-tab.active{
+    color:var(--amber-bright); border-color:var(--amber-dim);
+    background:linear-gradient(180deg,#2a2013,#1c160c);
+  }
+  .mode-tab:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .mode-info{
+    margin:0 0 16px; text-align:center; font-family:var(--font-display); font-size:11.5px;
+    letter-spacing:.06em; color:var(--steel); text-transform:uppercase;
+  }
+
   details.legend{
     margin:0 0 18px; background:var(--panel); border:1px solid var(--steel-dim);
     border-radius:10px; padding:10px 14px;
@@ -118,8 +137,10 @@
   .suggestions[hidden]{ display:none; }
   .suggestions li{
     padding:9px 10px; border-radius:6px; font-size:14px; cursor:pointer; color:var(--ink);
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
   }
   .suggestions li[aria-selected="true"]{ background:var(--amber-dim); color:var(--amber-bright); }
+  .suggestions li .suggestion-badges{ display:flex; gap:4px; flex:none; }
 
   .guess-btn{
     flex:none; padding:0 20px; border-radius:8px; border:1px solid var(--amber-dim);
@@ -138,6 +159,7 @@
   .status-row{
     display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
   }
+  .status-actions{ display:flex; align-items:center; gap:8px; }
   .status-chip{
     font-family:var(--font-display); font-size:12px; letter-spacing:.08em; color:var(--steel);
     text-transform:uppercase;
@@ -150,6 +172,56 @@
   .reset-btn:hover{ color:var(--ink); border-color:var(--steel); }
   .reset-btn.primary{ color:var(--amber-bright); border-color:var(--amber-dim); }
   .reset-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .reset-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .hints-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .hint-reveals{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .hint-reveals:empty{ margin-bottom:0; }
+
+  .map-panel{
+    margin-bottom:14px; padding:12px; background:var(--panel); border:1px solid var(--steel-dim);
+    border-radius:10px;
+  }
+  .map-caption{
+    margin:0 0 8px; font-family:var(--font-display); font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--steel); text-align:center;
+  }
+  .map-frame{ position:relative; }
+  .mrt-map{
+    display:block; width:100%; height:auto; max-height:340px; touch-action:none; cursor:grab;
+    background:var(--ground); border-radius:8px;
+    user-select:none; -webkit-user-select:none; -moz-user-select:none;
+  }
+  .mrt-map:active{ cursor:grabbing; }
+  .mrt-map .map-land{ fill:var(--panel-raised); stroke:var(--steel-dim); stroke-width:1.5; }
+  .mrt-map .line-path{ fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; opacity:.5; }
+  .mrt-map .guess-chip{ stroke:var(--bezel); stroke-width:1; }
+  .mrt-map .guess-chip-code{
+    font-family:var(--font-display); font-size:6.5px; font-weight:400; fill:#0b0f0d;
+    letter-spacing:-.02em;
+  }
+  .mrt-map .guess-hit-ring{ fill:none; stroke:var(--amber); stroke-width:2; filter:drop-shadow(0 0 4px var(--amber-glow)); }
+  .mrt-map .target-hint-ring{ fill:none; stroke:var(--amber-bright); stroke-width:1.5; stroke-dasharray:3,2; }
+  .mrt-map .target-hint-label{ fill:var(--amber-bright); }
+  .mrt-map .guess-label{
+    font-family:var(--font-display); font-size:8px; fill:var(--ink);
+    paint-order:stroke; stroke:var(--bezel); stroke-width:1.5; stroke-linejoin:round;
+  }
+  .map-controls{
+    position:absolute; top:8px; right:8px; display:flex; flex-direction:column; gap:6px;
+  }
+  .map-ctrl-btn{
+    width:26px; height:26px; padding:0; border-radius:6px; border:1px solid var(--steel-dim);
+    background:var(--panel); color:var(--ink); font-family:var(--font-display); font-size:15px;
+    line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .map-ctrl-btn:hover{ border-color:var(--amber-dim); color:var(--amber-bright); }
+  .map-ctrl-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .hint-reveal{
+    font-family:var(--font-display); font-size:11.5px; letter-spacing:.05em; color:var(--amber-bright);
+    text-transform:uppercase; background:var(--panel); border:1px solid var(--amber-dim); border-radius:6px;
+    padding:4px 9px; display:inline-flex; align-items:center; gap:5px;
+  }
 
   ul.guesses{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
 
@@ -214,10 +286,27 @@
   .dot{ width:13px; height:13px; border-radius:50%; border:1.5px solid var(--steel-dim); background:var(--panel-raised); }
   .dot.lit{ border-color:transparent; box-shadow:0 0 6px currentColor; }
 
-  .win-banner{
-    margin-top:16px; text-align:center; padding:20px 16px; border-radius:12px;
-    background:var(--panel); border:1px solid var(--amber-dim);
+  .modal-overlay{
+    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+    padding:20px; background:rgba(5,7,5,.72); backdrop-filter:blur(2px);
   }
+  .modal-overlay[hidden]{ display:none; }
+
+  .win-banner{
+    position:relative; width:100%; max-width:420px; max-height:calc(100vh - 40px); overflow-y:auto;
+    text-align:center; padding:24px 20px 20px;
+    border-radius:12px; background:var(--panel); border:1px solid var(--amber-dim);
+    box-shadow:0 20px 50px -12px rgba(0,0,0,.7);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .win-banner{ animation:rowIn .22s ease both; }
+  }
+  .modal-close{
+    position:absolute; top:8px; right:10px; width:26px; height:26px; line-height:1; border-radius:6px;
+    background:none; border:1px solid transparent; color:var(--steel); font-size:18px; cursor:pointer;
+  }
+  .modal-close:hover{ color:var(--ink); border-color:var(--steel-dim); }
+  .modal-close:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
   .win-eyebrow{
     margin:0 0 6px; font-family:var(--font-display); font-size:12px; letter-spacing:.2em; color:var(--amber);
   }
@@ -226,6 +315,25 @@
     text-shadow:0 0 8px var(--amber-glow);
   }
   .win-meta{ margin:0 0 14px; font-size:13px; color:var(--steel); }
+  .win-banner.lost .win-eyebrow{ color:var(--steel); }
+  .win-banner.lost .win-station{ color:var(--ink); text-shadow:none; }
+  .win-banner.lost{ border-color:var(--danger-line); }
+  .result-legend{
+    list-style:none; margin:0 0 14px; padding:10px 12px; text-align:left;
+    background:var(--panel-raised); border:1px solid var(--steel-dim); border-radius:8px;
+    display:flex; flex-direction:column; gap:7px;
+  }
+  .result-legend li{
+    display:flex; align-items:center; gap:9px; font-size:12px; color:var(--steel);
+    font-family:var(--font-body); line-height:1.3;
+  }
+  .result-legend .swatch{ flex:none; font-size:15px; letter-spacing:1px; }
+  .result-grid{
+    margin:0 0 16px; padding:12px 10px; border-radius:8px; background:var(--panel-raised);
+    border:1px solid var(--steel-dim); font-family:var(--font-display); font-size:19px; line-height:1.5;
+    white-space:pre-wrap; text-align:center;
+  }
+  .win-actions{ display:flex; gap:10px; justify-content:center; }
 
   .sr-only{
     position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
@@ -246,8 +354,14 @@
     <header class="board-head">
       <p class="eyebrow">SG MRT SYSTEM &middot; CONCOURSE DISPLAY</p>
       <h1 class="title">GUESS THE STATION</h1>
-      <p class="subtitle">A station is hidden somewhere on the network. Guess one &mdash; the board lights up direction, distance and line to steer your next guess.</p>
+      <p class="subtitle">A station is hidden somewhere on the network. You have 6 guesses &mdash; the board lights up direction, distance and line to steer the next one.</p>
     </header>
+
+    <div class="mode-row" role="tablist" aria-label="Game mode">
+      <button type="button" class="mode-tab" id="dailyTabBtn" role="tab" aria-selected="false">Daily</button>
+      <button type="button" class="mode-tab" id="practiceTabBtn" role="tab" aria-selected="false">Practice</button>
+    </div>
+    <p class="mode-info" id="modeInfo"></p>
 
     <details class="legend">
       <summary>How to read the board</summary>
@@ -266,9 +380,9 @@
         </div>
         <div class="legend-item">
           <span class="legend-icon">
-            <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="9" cy="13" r="6" fill="#d42e12"/><circle cx="18" cy="13" r="6" fill="none" stroke="#3d4a44" stroke-width="1.5"/></svg>
+            <svg width="26" height="26" viewBox="0 0 26 26"><circle cx="9" cy="13" r="6" fill="#eef1ee"/><circle cx="18" cy="13" r="6" fill="none" stroke="#3d4a44" stroke-width="1.5"/></svg>
           </span>
-          <span>Lit dot = your guess shares a line with the target</span>
+          <span>Lit dot = shares a line with target</span>
         </div>
       </div>
     </details>
@@ -283,18 +397,48 @@
     </form>
     <p class="input-error" id="inputError" role="alert"></p>
 
+    <div class="hints-row">
+      <button type="button" class="reset-btn" id="hintLineBtn">Hint 1: reveal lit dot colour</button>
+      <button type="button" class="reset-btn" id="hintLineNameBtn" disabled>Hint 2: reveal station code</button>
+      <button type="button" class="reset-btn" id="hintInitialBtn" disabled>Hint 3: reveal first letter</button>
+    </div>
+    <div class="hint-reveals" id="hintReveals"></div>
+
+    <div class="map-panel">
+      <p class="map-caption">Guessed stations light up on the map</p>
+      <div class="map-frame">
+        <svg class="mrt-map" id="mrtMap" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of guessed MRT stations"></svg>
+        <div class="map-controls">
+          <button type="button" class="map-ctrl-btn" id="mapZoomInBtn" aria-label="Zoom in">+</button>
+          <button type="button" class="map-ctrl-btn" id="mapZoomOutBtn" aria-label="Zoom out">&minus;</button>
+          <button type="button" class="map-ctrl-btn" id="mapResetBtn" aria-label="Reset view">&#8635;</button>
+        </div>
+      </div>
+    </div>
+
     <div class="status-row">
       <span class="status-chip" id="guessCount">0 guesses</span>
-      <button type="button" class="reset-btn" id="resetBtn">New puzzle</button>
+      <div class="status-actions">
+        <button type="button" class="reset-btn" id="resultBtn" disabled>Result</button>
+        <button type="button" class="reset-btn" id="resetBtn">New puzzle</button>
+      </div>
     </div>
 
     <ul class="guesses" id="guessList"></ul>
 
-    <div class="win-banner" id="winBanner" hidden>
-      <p class="win-eyebrow">ARRIVED</p>
-      <p class="win-station" id="winStation"></p>
-      <p class="win-meta" id="winMeta"></p>
-      <button type="button" class="reset-btn primary" id="playAgainBtn">Play again</button>
+    <div class="modal-overlay" id="winOverlay" hidden>
+      <div class="win-banner" id="winBanner" role="dialog" aria-modal="true" aria-labelledby="winStation">
+        <button type="button" class="modal-close" id="winCloseBtn" aria-label="Close">&times;</button>
+        <p class="win-eyebrow" id="winEyebrow">ARRIVED</p>
+        <p class="win-station" id="winStation"></p>
+        <p class="win-meta" id="winMeta"></p>
+        <ul class="result-legend" id="resultLegend"></ul>
+        <pre class="result-grid" id="resultGrid" aria-label="Guess result summary"></pre>
+        <div class="win-actions">
+          <button type="button" class="reset-btn primary" id="copyResultBtn">Copy result</button>
+          <button type="button" class="reset-btn primary" id="playAgainBtn">Play again</button>
+        </div>
+      </div>
     </div>
   </div>
 </main>
@@ -307,37 +451,99 @@
 
   var LINE_COLORS = { NSL:'#d42e12', EWL:'#009645', NEL:'#9900aa', CCL:'#fa9e0d', DTL:'#005ec4', TEL:'#9d5b25' };
 
+  // Real relative geography: x from longitude, y from (northmost latitude - latitude),
+  // both scaled by the same factor so compass bearings between stations come out accurate.
   var COORDS = {
-    "Jurong East":[140,540], "Bukit Batok":[165,480], "Choa Chu Kang":[150,400], "Kranji":[230,240],
-    "Woodlands":[280,150], "Yishun":[380,210], "Ang Mo Kio":[460,300], "Bishan":[475,370],
-    "Toa Payoh":[480,420], "Novena":[470,470], "Newton":[460,505], "Orchard":[450,540],
-    "Dhoby Ghaut":[440,585], "City Hall":[460,610], "Raffles Place":[470,635], "Marina Bay":[480,675],
-
-    "Boon Lay":[60,470], "Clementi":[230,545], "Buona Vista":[300,565], "Queenstown":[335,600],
-    "Tiong Bahru":[395,635], "Outram Park":[425,655], "Bugis":[490,555], "Aljunied":[540,490],
-    "Paya Lebar":[560,460], "Bedok":[630,410], "Tanah Merah":[660,395], "Tampines":[720,355],
-    "Pasir Ris":[770,325], "Expo":[700,405], "Changi Airport":[745,395],
-
-    "Chinatown":[445,650], "Clarke Quay":[450,625], "Little India":[455,570], "Farrer Park":[470,545],
-    "Serangoon":[530,455], "Hougang":[565,400], "Sengkang":[590,365], "Punggol":[620,325],
-    "HarbourFront":[400,715],
-
-    "Botanic Gardens":[400,470], "Caldecott":[445,420], "MacPherson":[545,455], "Promenade":[480,580],
-
-    "Bukit Panjang":[200,300], "Ubi":[560,430], "Bedok North":[610,420],
-
-    "Springleaf":[330,225], "Gardens by the Bay":[520,690]
+    "Admiralty":[533,65], "Aljunied":[778,438], "Ang Mo Kio":[681,278], "Bartley":[769,359],
+    "Bayfront":[707,542], "Bayshore":[955,448], "Beauty World":[457,364], "Bedok":[920,415],
+    "Bedok North":[883,383], "Bedok Reservoir":[927,377], "Bencoolen":[681,491], "Bendemeer":[719,446],
+    "Bishan":[676,334], "Boon Keng":[715,429], "Boon Lay":[246,372], "Botanic Gardens":[577,420],
+    "Braddell":[670,366], "Bras Basah":[682,497], "Bright Hill":[633,297], "Buangkok":[809,239],
+    "Bugis":[699,487], "Bukit Batok":[378,340], "Bukit Gombak":[385,311], "Bukit Panjang":[417,252],
+    "Buona Vista":[501,467], "Caldecott":[649,375], "Canberra":[618,57], "Cashew":[424,279],
+    "Changi Airport":[1095,315], "Chinatown":[662,534], "Chinese Garden":[328,361], "Choa Chu Kang":[363,232],
+    "City Hall":[688,508], "Clarke Quay":[670,521], "Clementi":[427,439], "Commonwealth":[525,480],
+    "Dakota":[796,462], "Dhoby Ghaut":[667,490], "Dover":[466,453], "Downtown":[688,549],
+    "Esplanade":[697,507], "Eunos":[840,428], "Expo":[1016,383], "Farrer Park":[693,450],
+    "Farrer Road":[552,435], "Fort Canning":[663,510], "Gardens by the Bay":[734,550], "Geylang Bahru":[745,423],
+    "Great World":[630,504], "Gul Circle":[112,428], "HarbourFront":[594,591], "Havelock":[631,522],
+    "Haw Par Villa":[475,540], "Hillview":[432,300], "Holland Village":[518,451], "Hougang":[805,274],
+    "Hume":[437,324], "Jalan Besar":[696,471], "Joo Koon":[165,404], "Jurong East":[356,388],
+    "Kaki Bukit":[855,382], "Kallang":[744,453], "Katong Park":[788,494], "Kembangan":[869,424],
+    "Kent Ridge":[483,507], "Khatib":[629,134], "King Albert Park":[479,383], "Kovan":[785,307],
+    "Kranji":[416,112], "Labrador Park":[539,570], "Lakeside":[293,354], "Lavender":[718,465],
+    "Lentor":[639,232], "Little India":[678,466], "Lorong Chuan":[722,332], "MacPherson":[799,409],
+    "Marina Bay":[695,560], "Marina South Pier":[718,573], "Marine Parade":[846,479], "Marine Terrace":[876,467],
+    "Marsiling":[452,89], "Marymount":[648,341], "Mattar":[780,407], "Maxwell":[662,545],
+    "Mayflower":[640,271], "Mountbatten":[777,469], "Napier":[587,467], "Newton":[644,448],
+    "Nicoll Highway":[721,488], "Novena":[661,426], "Orchard":[625,477], "Orchard Boulevard":[601,479],
+    "Outram Park":[647,545], "Pasir Panjang":[504,559], "Pasir Ris":[978,271], "Paya Lebar":[808,434],
+    "Pioneer":[222,374], "Potong Pasir":[737,393], "Promenade":[713,508], "Punggol":[837,172],
+    "Punggol Coast":[860,142], "Queenstown":[548,503], "Raffles Place":[684,535], "Redhill":[580,518],
+    "Rochor":[687,475], "Sembawang":[590,40], "Sengkang":[816,213], "Serangoon":[749,337],
+    "Shenton Way":[682,554], "Siglap":[919,458], "Simei":[990,358], "Sixth Avenue":[522,395],
+    "Somerset":[647,486], "Springleaf":[584,193], "Stadium":[756,479], "Stevens":[607,428],
+    "Tai Seng":[794,381], "Tampines":[962,325], "Tampines East":[994,319], "Tampines West":[945,351],
+    "Tan Kah Kee":[552,410], "Tanah Merah":[969,405], "Tanjong Katong":[822,489], "Tanjong Pagar":[668,557],
+    "Tanjong Rhu":[750,495], "Telok Ayer":[675,540], "Telok Blangah":[559,575], "Tiong Bahru":[611,529],
+    "Toa Payoh":[672,389], "Tuas Crescent":[77,424], "Tuas Link":[40,366], "Tuas West Road":[48,397],
+    "Ubi":[827,397], "Upper Changi":[1014,362], "Upper Thomson":[628,324], "Woodlands":[491,78],
+    "Woodlands North":[488,42], "Woodlands South":[511,106], "Woodleigh":[742,370], "Yew Tee":[372,195],
+    "Yio Chu Kang":[664,242], "Yishun":[635,98], "one-north":[492,488]
   };
 
   var LINE_SEQUENCES = [
-    {code:'NSL', seq:["Jurong East","Bukit Batok","Choa Chu Kang","Kranji","Woodlands","Yishun","Ang Mo Kio","Bishan","Toa Payoh","Novena","Newton","Orchard","Dhoby Ghaut","City Hall","Raffles Place","Marina Bay"]},
-    {code:'EWL', seq:["Boon Lay","Jurong East","Clementi","Buona Vista","Queenstown","Tiong Bahru","Outram Park","Raffles Place","City Hall","Bugis","Aljunied","Paya Lebar","Bedok","Tanah Merah","Tampines","Pasir Ris"]},
+    {code:'NSL', seq:["Jurong East","Bukit Batok","Bukit Gombak","Choa Chu Kang","Yew Tee","Kranji","Marsiling","Woodlands","Admiralty","Sembawang","Canberra","Yishun","Khatib","Yio Chu Kang","Ang Mo Kio","Bishan","Braddell","Toa Payoh","Novena","Newton","Orchard","Somerset","Dhoby Ghaut","City Hall","Raffles Place","Marina Bay","Marina South Pier"]},
+    {code:'EWL', seq:["Pasir Ris","Tampines","Simei","Tanah Merah","Bedok","Kembangan","Eunos","Paya Lebar","Aljunied","Kallang","Lavender","Bugis","City Hall","Raffles Place","Tanjong Pagar","Outram Park","Tiong Bahru","Redhill","Queenstown","Commonwealth","Buona Vista","Dover","Clementi","Jurong East","Chinese Garden","Lakeside","Boon Lay","Pioneer","Joo Koon","Gul Circle","Tuas Crescent","Tuas West Road","Tuas Link"]},
     {code:'EWL', seq:["Tanah Merah","Expo","Changi Airport"]},
-    {code:'NEL', seq:["HarbourFront","Outram Park","Chinatown","Clarke Quay","Dhoby Ghaut","Little India","Farrer Park","Serangoon","Hougang","Sengkang","Punggol"]},
-    {code:'CCL', seq:["HarbourFront","Buona Vista","Botanic Gardens","Caldecott","Bishan","Serangoon","MacPherson","Paya Lebar","Promenade","Dhoby Ghaut"]},
-    {code:'DTL', seq:["Bukit Panjang","Botanic Gardens","Newton","Little India","Bugis","Promenade","Chinatown","MacPherson","Ubi","Bedok North","Expo"]},
-    {code:'TEL', seq:["Woodlands","Springleaf","Caldecott","Newton","Orchard","Outram Park","Marina Bay","Gardens by the Bay"]}
+    {code:'NEL', seq:["HarbourFront","Outram Park","Chinatown","Clarke Quay","Dhoby Ghaut","Little India","Farrer Park","Boon Keng","Potong Pasir","Woodleigh","Serangoon","Kovan","Hougang","Buangkok","Sengkang","Punggol","Punggol Coast"]},
+    {code:'CCL', seq:["Dhoby Ghaut","Bras Basah","Esplanade","Promenade","Nicoll Highway","Stadium","Mountbatten","Dakota","Paya Lebar","MacPherson","Tai Seng","Bartley","Serangoon","Lorong Chuan","Bishan","Marymount","Caldecott","Botanic Gardens","Farrer Road","Holland Village","Buona Vista","one-north","Kent Ridge","Haw Par Villa","Pasir Panjang","Labrador Park","Telok Blangah","HarbourFront"]},
+    {code:'CCL', seq:["Promenade","Bayfront","Marina Bay"]},
+    {code:'DTL', seq:["Bukit Panjang","Cashew","Hillview","Hume","Beauty World","King Albert Park","Sixth Avenue","Tan Kah Kee","Botanic Gardens","Stevens","Newton","Little India","Rochor","Bugis","Promenade","Bayfront","Downtown","Telok Ayer","Chinatown","Fort Canning","Bencoolen","Jalan Besar","Bendemeer","Geylang Bahru","Mattar","MacPherson","Ubi","Kaki Bukit","Bedok North","Bedok Reservoir","Tampines West","Tampines","Tampines East","Upper Changi","Expo"]},
+    {code:'TEL', seq:["Woodlands North","Woodlands","Woodlands South","Springleaf","Lentor","Mayflower","Bright Hill","Upper Thomson","Caldecott","Stevens","Napier","Orchard Boulevard","Orchard","Great World","Havelock","Outram Park","Maxwell","Shenton Way","Marina Bay","Gardens by the Bay","Tanjong Rhu","Katong Park","Tanjong Katong","Marine Parade","Marine Terrace","Siglap","Bayshore"]}
   ];
+
+  // Official station code per line (e.g. Outram Park is EW16 on the East West
+  // Line and NE3 on the North East Line) — used only for the map's chip
+  // labels, purely cosmetic/informational.
+  var STATION_CODES = {
+    "Admiralty":{NSL:"NS10"}, "Aljunied":{EWL:"EW9"}, "Ang Mo Kio":{NSL:"NS16"}, "Bartley":{CCL:"CC12"},
+    "Bayfront":{CCL:"CE1",DTL:"DT16"}, "Bayshore":{TEL:"TE29"}, "Beauty World":{DTL:"DT5"}, "Bedok":{EWL:"EW5"},
+    "Bedok North":{DTL:"DT29"}, "Bedok Reservoir":{DTL:"DT30"}, "Bencoolen":{DTL:"DT21"}, "Bendemeer":{DTL:"DT23"},
+    "Bishan":{CCL:"CC15",NSL:"NS17"}, "Boon Keng":{NEL:"NE9"}, "Boon Lay":{EWL:"EW27"}, "Botanic Gardens":{CCL:"CC19",DTL:"DT9"},
+    "Braddell":{NSL:"NS18"}, "Bras Basah":{CCL:"CC2"}, "Bright Hill":{TEL:"TE7"}, "Buangkok":{NEL:"NE15"},
+    "Bugis":{DTL:"DT14",EWL:"EW12"}, "Bukit Batok":{NSL:"NS2"}, "Bukit Gombak":{NSL:"NS3"}, "Bukit Panjang":{DTL:"DT1"},
+    "Buona Vista":{CCL:"CC22",EWL:"EW21"}, "Caldecott":{CCL:"CC17",TEL:"TE9"}, "Canberra":{NSL:"NS12"}, "Cashew":{DTL:"DT2"},
+    "Changi Airport":{EWL:"CG2"}, "Chinatown":{DTL:"DT19",NEL:"NE4"}, "Chinese Garden":{EWL:"EW25"}, "Choa Chu Kang":{NSL:"NS4"},
+    "City Hall":{EWL:"EW13",NSL:"NS25"}, "Clarke Quay":{NEL:"NE5"}, "Clementi":{EWL:"EW23"}, "Commonwealth":{EWL:"EW20"},
+    "Dakota":{CCL:"CC8"}, "Dhoby Ghaut":{CCL:"CC1",NEL:"NE6",NSL:"NS24"}, "Dover":{EWL:"EW22"}, "Downtown":{DTL:"DT17"},
+    "Esplanade":{CCL:"CC3"}, "Eunos":{EWL:"EW7"}, "Expo":{DTL:"DT35",EWL:"CG1"}, "Farrer Park":{NEL:"NE8"},
+    "Farrer Road":{CCL:"CC20"}, "Fort Canning":{DTL:"DT20"}, "Gardens by the Bay":{TEL:"TE22"}, "Geylang Bahru":{DTL:"DT24"},
+    "Great World":{TEL:"TE15"}, "Gul Circle":{EWL:"EW30"}, "HarbourFront":{CCL:"CC29",NEL:"NE1"}, "Havelock":{TEL:"TE16"},
+    "Haw Par Villa":{CCL:"CC25"}, "Hillview":{DTL:"DT3"}, "Holland Village":{CCL:"CC21"}, "Hougang":{NEL:"NE14"},
+    "Hume":{DTL:"DT4"}, "Jalan Besar":{DTL:"DT22"}, "Joo Koon":{EWL:"EW29"}, "Jurong East":{EWL:"EW24",NSL:"NS1"},
+    "Kaki Bukit":{DTL:"DT28"}, "Kallang":{EWL:"EW10"}, "Katong Park":{TEL:"TE24"}, "Kembangan":{EWL:"EW6"},
+    "Kent Ridge":{CCL:"CC24"}, "Khatib":{NSL:"NS14"}, "King Albert Park":{DTL:"DT6"}, "Kovan":{NEL:"NE13"},
+    "Kranji":{NSL:"NS7"}, "Labrador Park":{CCL:"CC27"}, "Lakeside":{EWL:"EW26"}, "Lavender":{EWL:"EW11"},
+    "Lentor":{TEL:"TE5"}, "Little India":{DTL:"DT12",NEL:"NE7"}, "Lorong Chuan":{CCL:"CC14"}, "MacPherson":{CCL:"CC10",DTL:"DT26"},
+    "Marina Bay":{CCL:"CE2",NSL:"NS27",TEL:"TE20"}, "Marina South Pier":{NSL:"NS28"}, "Marine Parade":{TEL:"TE26"}, "Marine Terrace":{TEL:"TE27"},
+    "Marsiling":{NSL:"NS8"}, "Marymount":{CCL:"CC16"}, "Mattar":{DTL:"DT25"}, "Maxwell":{TEL:"TE18"},
+    "Mayflower":{TEL:"TE6"}, "Mountbatten":{CCL:"CC7"}, "Napier":{TEL:"TE12"}, "Newton":{DTL:"DT11",NSL:"NS21"},
+    "Nicoll Highway":{CCL:"CC5"}, "Novena":{NSL:"NS20"}, "Orchard":{NSL:"NS22",TEL:"TE14"}, "Orchard Boulevard":{TEL:"TE13"},
+    "Outram Park":{EWL:"EW16",NEL:"NE3",TEL:"TE17"}, "Pasir Panjang":{CCL:"CC26"}, "Pasir Ris":{EWL:"EW1"}, "Paya Lebar":{CCL:"CC9",EWL:"EW8"},
+    "Pioneer":{EWL:"EW28"}, "Potong Pasir":{NEL:"NE10"}, "Promenade":{CCL:"CC4",DTL:"DT15"}, "Punggol":{NEL:"NE17"},
+    "Punggol Coast":{NEL:"NE18"}, "Queenstown":{EWL:"EW19"}, "Raffles Place":{EWL:"EW14",NSL:"NS26"}, "Redhill":{EWL:"EW18"},
+    "Rochor":{DTL:"DT13"}, "Sembawang":{NSL:"NS11"}, "Sengkang":{NEL:"NE16"}, "Serangoon":{CCL:"CC13",NEL:"NE12"},
+    "Shenton Way":{TEL:"TE19"}, "Siglap":{TEL:"TE28"}, "Simei":{EWL:"EW3"}, "Sixth Avenue":{DTL:"DT7"},
+    "Somerset":{NSL:"NS23"}, "Springleaf":{TEL:"TE4"}, "Stadium":{CCL:"CC6"}, "Stevens":{DTL:"DT10",TEL:"TE11"},
+    "Tai Seng":{CCL:"CC11"}, "Tampines":{DTL:"DT32",EWL:"EW2"}, "Tampines East":{DTL:"DT33"}, "Tampines West":{DTL:"DT31"},
+    "Tan Kah Kee":{DTL:"DT8"}, "Tanah Merah":{EWL:"EW4"}, "Tanjong Katong":{TEL:"TE25"}, "Tanjong Pagar":{EWL:"EW15"},
+    "Tanjong Rhu":{TEL:"TE23"}, "Telok Ayer":{DTL:"DT18"}, "Telok Blangah":{CCL:"CC28"}, "Tiong Bahru":{EWL:"EW17"},
+    "Toa Payoh":{NSL:"NS19"}, "Tuas Crescent":{EWL:"EW31"}, "Tuas Link":{EWL:"EW33"}, "Tuas West Road":{EWL:"EW32"},
+    "Ubi":{DTL:"DT27"}, "Upper Changi":{DTL:"DT34"}, "Upper Thomson":{TEL:"TE8"}, "Woodlands":{NSL:"NS9",TEL:"TE2"},
+    "Woodlands North":{TEL:"TE1"}, "Woodlands South":{TEL:"TE3"}, "Woodleigh":{NEL:"NE11"}, "Yew Tee":{NSL:"NS5"},
+    "Yio Chu Kang":{NSL:"NS15"}, "Yishun":{NSL:"NS13"}, "one-north":{CCL:"CC23"}
+  };
 
   var stationLines = {};
   var graph = {};
@@ -356,22 +562,482 @@
 
   var STATION_NAMES = Object.keys(COORDS).sort();
 
-  function bfsDistance(a, b){
-    if(a === b) return 0;
-    var visited = new Set([a]);
-    var queue = [[a,0]];
-    while(queue.length){
-      var cur = queue.shift();
-      var neighbors = graph[cur[0]] || new Set();
-      for(var n of neighbors){
-        if(n === b) return cur[1] + 1;
-        if(!visited.has(n)){
-          visited.add(n);
-          queue.push([n, cur[1]+1]);
-        }
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // Bounding box over every station's x/y, with a little padding — used as
+  // the map SVG's viewBox so the whole network fits regardless of screen size.
+  var MAP_BOUNDS = (function(){
+    var xs = STATION_NAMES.map(function(n){ return COORDS[n][0]; });
+    var ys = STATION_NAMES.map(function(n){ return COORDS[n][1]; });
+    var pad = 30;
+    var minX = Math.min.apply(null, xs) - pad;
+    var minY = Math.min.apply(null, ys) - pad;
+    var maxX = Math.max.apply(null, xs) + pad;
+    var maxY = Math.max.apply(null, ys) + pad;
+    return { minX: minX, minY: minY, width: maxX - minX, height: maxY - minY };
+  })();
+
+  // A stylised landmass silhouette behind the network — a convex hull around
+  // every station's real coordinates, pushed out a bit past the outermost
+  // stations and smoothed into a rounded blob. It's a hull of the transit
+  // network, not a traced coastline, so treat it as "Singapore-ish" rather
+  // than geographically precise.
+  // A plain ellipse sized to the station spread — an abstract "landmass"
+  // rather than an attempt at Singapore's actual coastline (a hull of just
+  // the outlier stations came out lens-shaped; an ellipse can't produce a
+  // sharp point at any aspect ratio, so it stays a soft blob regardless).
+  var MAP_LAND_ELLIPSE = (function(){
+    var xs = STATION_NAMES.map(function(n){ return COORDS[n][0]; });
+    var ys = STATION_NAMES.map(function(n){ return COORDS[n][1]; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    return {
+      cx: (minX + maxX) / 2,
+      cy: (minY + maxY) / 2,
+      rx: (maxX - minX) / 2 * 1.14,
+      ry: (maxY - minY) / 2 * 1.22
+    };
+  })();
+
+  // Every line segment on the network, flattened once — used to steer guess
+  // labels into whatever nearby patch of the map is actually empty, instead
+  // of dropping them at a fixed offset that might land right on a line.
+  var LINE_SEGMENTS = (function(){
+    var segs = [];
+    LINE_SEQUENCES.forEach(function(line){
+      for(var i = 1; i < line.seq.length; i++){
+        var a = COORDS[line.seq[i - 1]], b = COORDS[line.seq[i]];
+        segs.push([a[0], a[1], b[0], b[1]]);
       }
+    });
+    return segs;
+  })();
+
+  function distToSegment(px, py, x1, y1, x2, y2){
+    var dx = x2 - x1, dy = y2 - y1;
+    var lenSq = dx * dx + dy * dy;
+    var t = lenSq > 0 ? ((px - x1) * dx + (py - y1) * dy) / lenSq : 0;
+    t = Math.max(0, Math.min(1, t));
+    var cx = x1 + t * dx, cy = y1 + t * dy;
+    var ddx = px - cx, ddy = py - cy;
+    return Math.sqrt(ddx * ddx + ddy * ddy);
+  }
+
+  function minDistToLines(px, py){
+    var min = Infinity;
+    for(var i = 0; i < LINE_SEGMENTS.length; i++){
+      var s = LINE_SEGMENTS[i];
+      var d = distToSegment(px, py, s[0], s[1], s[2], s[3]);
+      if(d < min) min = d;
     }
-    return -1;
+    return min;
+  }
+
+  // 8 candidate directions to tuck a label into, checked in this priority
+  // order so ties resolve toward the more natural reading positions first.
+  // Strictly left or right, never above/below — the label always reads as
+  // "badges [gap] name" on the same horizontal line, matching the reference
+  // map's layout instead of drifting to whichever direction is clearest.
+  var LABEL_DIRECTIONS = [
+    { ux: 1, uy: 0, anchor: 'start', dy: 4 },
+    { ux: -1, uy: 0, anchor: 'end', dy: 4 }
+  ];
+  var LABEL_FONT_SIZE = 8;
+  var LABEL_CHAR_WIDTH = LABEL_FONT_SIZE * 0.6; // var(--font-display) is monospace
+
+  // Scores each candidate direction by how far the label text (approximated
+  // as a handful of sample points along its estimated width) sits from the
+  // nearest line segment, and picks the clearest one that still fits inside
+  // the map bounds.
+  // Labels already placed this puzzle — later guesses steer away from these
+  // too, not just the line network, so two real-world-neighbouring stations
+  // (e.g. Raffles Place / City Hall) don't stack their labels on top of
+  // each other. Reset alongside the map markers on every new puzzle.
+  var placedLabelBoxes = [];
+
+  function boxesOverlap(a, b){
+    return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  }
+
+  // A single fixed radius for every station — no escalation. Consistency
+  // (every label sits the same tight distance from its dot) matters more
+  // here than perfectly dodging every line, which an escalating search
+  // occasionally satisfied by drifting a label awkwardly far away.
+  // Manual overrides for specific stations where the automatic left/right
+  // pick doesn't read well — takes priority over the scored choice.
+  var LABEL_SIDE_OVERRIDE = { "Raffles Place": "right", "Outram Park": "left" };
+
+  function pickLabelPlacement(c, name, radius){
+    var textWidth = name.length * LABEL_CHAR_WIDTH;
+    var halfHeight = LABEL_FONT_SIZE * 0.65;
+    var best = null;
+
+    var forcedSide = LABEL_SIDE_OVERRIDE[name];
+    var candidates = forcedSide
+      ? LABEL_DIRECTIONS.filter(function(dir){ return forcedSide === 'right' ? dir.ux > 0 : dir.ux < 0; })
+      : LABEL_DIRECTIONS;
+
+    candidates.forEach(function(dir){
+      var ax = c[0] + dir.ux * radius;
+      var ay = c[1] + dir.uy * radius;
+      var left = dir.anchor === 'start' ? ax : (dir.anchor === 'end' ? ax - textWidth : ax - textWidth / 2);
+      var right = left + textWidth;
+      var midY = ay - LABEL_FONT_SIZE * 0.35;
+      var box = { left: left - 2, right: right + 2, top: midY - halfHeight, bottom: midY + halfHeight };
+
+      var fitsBounds = box.left >= MAP_BOUNDS.minX && box.right <= MAP_BOUNDS.minX + MAP_BOUNDS.width &&
+        box.top >= MAP_BOUNDS.minY && box.bottom <= MAP_BOUNDS.minY + MAP_BOUNDS.height;
+
+      var samples = [left, left + textWidth * 0.5, right];
+      var score = Infinity;
+      samples.forEach(function(sx){
+        score = Math.min(score, minDistToLines(sx, midY));
+      });
+      if(!fitsBounds) score -= 1000; // strongly discourage running off the map
+      if(placedLabelBoxes.some(function(b){ return boxesOverlap(box, b); })) score -= 500;
+
+      if(!best || score > best.score) best = { dir: dir, x: ax, y: ay, score: score, box: box };
+    });
+
+    placedLabelBoxes.push(best.box);
+    return best;
+  }
+
+  var mapGuessGroup = null;
+  var mapTargetGroup = null;
+
+  // Drawn once at load — just the line paths, no per-station dots. Stations
+  // stay invisible until guessed, otherwise the map would give away every
+  // stop's location for free.
+  function renderMapBase(svg){
+    svg.innerHTML = '';
+
+    var land = document.createElementNS(SVG_NS, 'ellipse');
+    land.setAttribute('cx', MAP_LAND_ELLIPSE.cx);
+    land.setAttribute('cy', MAP_LAND_ELLIPSE.cy);
+    land.setAttribute('rx', MAP_LAND_ELLIPSE.rx);
+    land.setAttribute('ry', MAP_LAND_ELLIPSE.ry);
+    land.setAttribute('class', 'map-land');
+    svg.appendChild(land);
+
+    var linesGroup = document.createElementNS(SVG_NS, 'g');
+    LINE_SEQUENCES.forEach(function(line){
+      var points = line.seq.map(function(name){ return COORDS[name].join(','); }).join(' ');
+      var poly = document.createElementNS(SVG_NS, 'polyline');
+      poly.setAttribute('points', points);
+      poly.setAttribute('class', 'line-path');
+      poly.setAttribute('stroke', LINE_COLORS[line.code]);
+      linesGroup.appendChild(poly);
+    });
+    svg.appendChild(linesGroup);
+
+    mapGuessGroup = document.createElementNS(SVG_NS, 'g');
+    svg.appendChild(mapGuessGroup);
+
+    mapTargetGroup = document.createElementNS(SVG_NS, 'g');
+    svg.appendChild(mapTargetGroup);
+  }
+
+  // --- Zoom / pan --------------------------------------------------------
+  // mapView is the current viewBox in the map's own coordinate space; it
+  // starts zoomed in (MAP_DEFAULT_SCALE of the full network) rather than
+  // fitting everything at once — MAP_BOUNDS remains the outer pannable/
+  // zoom-out limit, reachable via the zoom-out button or the wheel.
+  var mapView = null;
+  var MAP_MIN_SCALE = 0.07; // closest you can zoom in, as a fraction of the home width
+  var MAP_DEFAULT_SCALE = 0.5; // default view width/height, as a fraction of the full network
+  var MAP_FOCUS_SCALE = 0.3; // how tight to zoom in on a single fresh guess
+  var mapDrag = null;
+
+  function resetMapView(){
+    if(guessesData.length){ fitMapToGuesses(); return; }
+    var w = MAP_BOUNDS.width * MAP_DEFAULT_SCALE;
+    var h = MAP_BOUNDS.height * MAP_DEFAULT_SCALE;
+    var cx = MAP_BOUNDS.minX + MAP_BOUNDS.width / 2;
+    var cy = MAP_BOUNDS.minY + MAP_BOUNDS.height / 2;
+    var targetView = { x: cx - w / 2, y: cy - h / 2, w: w, h: h };
+    if(mapView){
+      animateMapViewTo(targetView);
+    } else {
+      mapView = targetView; // very first call, before mapView exists — nothing to animate from
+      applyMapView();
+    }
+  }
+
+  // Called after every guess: the first guess snaps the view to focus on it;
+  // each guess after that widens the view just enough to keep every guess so
+  // far in frame, rather than leaving the player to hunt for new markers.
+  function fitMapToGuesses(){
+    if(!guessesData.length) return;
+    var xs = guessesData.map(function(g){ return COORDS[g.name][0]; });
+    var ys = guessesData.map(function(g){ return COORDS[g.name][1]; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+
+    var PAD = 1.7; // breathing room around the guessed spread, not flush to the edge
+    var spanX = (maxX - minX) * PAD;
+    var spanY = (maxY - minY) * PAD;
+
+    var focusW = MAP_BOUNDS.width * MAP_FOCUS_SCALE;
+    var focusH = MAP_BOUNDS.height * MAP_FOCUS_SCALE;
+    var w = Math.max(spanX, focusW);
+    var h = Math.max(spanY, focusH);
+
+    // Keep the map's aspect ratio so it never looks squashed/stretched.
+    var aspect = MAP_BOUNDS.width / MAP_BOUNDS.height;
+    if(w / h > aspect) h = w / aspect; else w = h * aspect;
+
+    w = Math.min(w, MAP_BOUNDS.width);
+    h = Math.min(h, MAP_BOUNDS.height);
+
+    var targetView = clampViewObject({ x: cx - w / 2, y: cy - h / 2, w: w, h: h });
+    animateMapViewTo(targetView);
+  }
+
+  function applyMapView(){
+    els.mrtMap.setAttribute('viewBox', mapView.x + ' ' + mapView.y + ' ' + mapView.w + ' ' + mapView.h);
+    updateMarkerScale();
+  }
+
+  // Smoothly tweens the current view to a target one — used for the
+  // "programmatic" view changes (new guess, reset button, mode switch) so
+  // the map glides instead of snapping. Drag-pan and wheel-zoom bypass this
+  // and call applyMapView() directly, since those need to track the pointer
+  // instantly rather than ease toward a destination.
+  var mapViewAnimId = null;
+  function animateMapViewTo(targetView, duration){
+    if(mapViewAnimId) cancelAnimationFrame(mapViewAnimId);
+    var start = { x: mapView.x, y: mapView.y, w: mapView.w, h: mapView.h };
+    var startTime = null;
+    duration = duration || 550;
+
+    function step(now){
+      if(startTime === null) startTime = now;
+      var t = Math.min(1, (now - startTime) / duration);
+      var eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      mapView = {
+        x: start.x + (targetView.x - start.x) * eased,
+        y: start.y + (targetView.y - start.y) * eased,
+        w: start.w + (targetView.w - start.w) * eased,
+        h: start.h + (targetView.h - start.h) * eased
+      };
+      applyMapView();
+      if(t < 1) mapViewAnimId = requestAnimationFrame(step);
+      else mapViewAnimId = null;
+    }
+    mapViewAnimId = requestAnimationFrame(step);
+  }
+
+  // Guess markers (badges + label) are drawn at sizes tuned for the default
+  // view; without this they'd grow or shrink with the viewBox like the line
+  // network does. Each marker is wrapped in a group counter-scaled around
+  // its own station point, so it reads at the same on-screen size at any
+  // zoom level instead of ballooning when you zoom in.
+  var mapMarkers = [];
+  // The target-hint marker is re-rendered from scratch each time hint 2/3
+  // fires; kept separate from mapMarkers so re-rendering can drop the stale
+  // (now-detached) entry instead of leaking a new one in on every hint.
+  var targetMarkers = [];
+  // Below this, stop counter-scaling any further as the view keeps zooming
+  // in — holding the compensation here instead of letting it keep shrinking
+  // means markers stay fixed size through the default-to-moderate zoom
+  // range, then start actually growing once you're zoomed in a lot (rather
+  // than staying pinned at the same small size all the way to max zoom).
+  var MARKER_SCALE_FLOOR = 0.65;
+
+  function updateMarkerScale(){
+    if(!mapView) return;
+    var natural = mapView.w / (MAP_BOUNDS.width * MAP_DEFAULT_SCALE);
+    var k = Math.max(MARKER_SCALE_FLOOR, natural);
+    mapMarkers.concat(targetMarkers).forEach(function(m){
+      m.g.setAttribute('transform', 'translate(' + m.cx + ' ' + m.cy + ') scale(' + k + ') translate(' + (-m.cx) + ' ' + (-m.cy) + ')');
+    });
+  }
+
+  function clampViewObject(view){
+    var maxX = MAP_BOUNDS.minX + MAP_BOUNDS.width - view.w;
+    var maxY = MAP_BOUNDS.minY + MAP_BOUNDS.height - view.h;
+    view.x = Math.min(Math.max(view.x, MAP_BOUNDS.minX), Math.max(maxX, MAP_BOUNDS.minX));
+    view.y = Math.min(Math.max(view.y, MAP_BOUNDS.minY), Math.max(maxY, MAP_BOUNDS.minY));
+    return view;
+  }
+
+  function clampMapView(){
+    clampViewObject(mapView);
+  }
+
+  // factor < 1 zooms in, > 1 zooms out, anchored on (cx, cy) in map user-space
+  // so zooming with the scroll wheel keeps whatever's under the cursor put.
+  function zoomMapAt(factor, cx, cy){
+    var minW = MAP_BOUNDS.width * MAP_MIN_SCALE;
+    var maxW = MAP_BOUNDS.width;
+    var newW = Math.max(minW, Math.min(maxW, mapView.w * factor));
+    var newH = newW * (MAP_BOUNDS.height / MAP_BOUNDS.width);
+    var actualFactor = newW / mapView.w;
+    mapView.x = cx - (cx - mapView.x) * actualFactor;
+    mapView.y = cy - (cy - mapView.y) * actualFactor;
+    mapView.w = newW;
+    mapView.h = newH;
+    clampMapView();
+    applyMapView();
+  }
+
+  function mapCenter(){
+    return { x: mapView.x + mapView.w / 2, y: mapView.y + mapView.h / 2 };
+  }
+
+  // Converts a mouse/pointer event's screen coordinates into the SVG's own
+  // user-space coordinates, so zoom-to-cursor and drag-to-pan track correctly
+  // regardless of how the SVG is currently scaled/zoomed on screen.
+  function svgPoint(svg, clientX, clientY){
+    var ctm = svg.getScreenCTM();
+    if(!ctm) return { x: 0, y: 0 };
+    var pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    var p = pt.matrixTransform(ctm.inverse());
+    return { x: p.x, y: p.y };
+  }
+
+  var BADGE_FONT = 6.5, BADGE_CHAR_W = BADGE_FONT * 0.62, BADGE_PAD_X = 2.5, BADGE_GAP = 1.5, BADGE_H = 9;
+
+  // Same style as a real system map: one small badge per line the station
+  // sits on, showing its actual code (e.g. "EW16") on that line's colour.
+  // Shared by actual guess markers and the map-based hint reveal below, so
+  // both draw identical badges. Returns the overall cluster width so the
+  // caller can size a ring/label radius around it.
+  function renderChipBadges(g, c, codeMap){
+    var lineCodes = Object.keys(codeMap).sort();
+    var widths = lineCodes.map(function(lc){ return codeMap[lc].length * BADGE_CHAR_W + BADGE_PAD_X * 2; });
+    var clusterWidth = widths.reduce(function(a, b){ return a + b; }, 0) + BADGE_GAP * Math.max(0, lineCodes.length - 1);
+    var startX = c[0] - clusterWidth / 2;
+
+    var cursorX = startX;
+    lineCodes.forEach(function(lc){
+      var code = codeMap[lc];
+      var w = code.length * BADGE_CHAR_W + BADGE_PAD_X * 2;
+
+      var rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', cursorX);
+      rect.setAttribute('y', c[1] - BADGE_H / 2);
+      rect.setAttribute('width', w);
+      rect.setAttribute('height', BADGE_H);
+      rect.setAttribute('rx', 2);
+      rect.setAttribute('class', 'guess-chip');
+      rect.style.fill = LINE_COLORS[lc];
+      g.appendChild(rect);
+
+      var codeText = document.createElementNS(SVG_NS, 'text');
+      codeText.setAttribute('x', cursorX + w / 2);
+      codeText.setAttribute('y', c[1] + BADGE_FONT * 0.35);
+      codeText.setAttribute('text-anchor', 'middle');
+      codeText.setAttribute('class', 'guess-chip-code');
+      codeText.textContent = code;
+      g.appendChild(codeText);
+
+      cursorX += w + BADGE_GAP;
+    });
+
+    return Math.max(clusterWidth, BADGE_H);
+  }
+
+  // Marks one guessed station on the map: code badges plus a name label,
+  // flipped to the opposite side near either horizontal edge so labels
+  // don't run off the visible viewBox.
+  function addMapMarker(entry){
+    var c = COORDS[entry.name];
+    var codeMap = STATION_CODES[entry.name] || {};
+
+    var g = document.createElementNS(SVG_NS, 'g');
+    g.setAttribute('class', 'guess-point');
+
+    var clusterWidth = renderChipBadges(g, c, codeMap);
+
+    if(entry.isHit){
+      var ring = document.createElementNS(SVG_NS, 'circle');
+      ring.setAttribute('cx', c[0]);
+      ring.setAttribute('cy', c[1]);
+      ring.setAttribute('r', clusterWidth / 2 + 4);
+      ring.setAttribute('class', 'guess-hit-ring');
+      g.insertBefore(ring, g.firstChild); // behind the badges, not on top
+    }
+
+    var placement = pickLabelPlacement(c, entry.name, clusterWidth / 2 + 3);
+    var text = document.createElementNS(SVG_NS, 'text');
+    text.setAttribute('x', placement.x);
+    text.setAttribute('y', placement.y + placement.dir.dy);
+    text.setAttribute('text-anchor', placement.dir.anchor);
+    text.setAttribute('class', 'guess-label');
+    text.textContent = entry.name;
+    g.appendChild(text);
+
+    mapGuessGroup.appendChild(g);
+    mapMarkers.push({ g: g, cx: c[0], cy: c[1] });
+    updateMarkerScale();
+  }
+
+  // Hint 2/3 reveal the target itself on the map — its code badge(s), and
+  // once hint 3 is bought, its first letter — rather than spelling it out in
+  // the sidebar. Re-rendered (from scratch) each time either hint's state
+  // changes, and cleared on every new puzzle same as guess markers.
+  function renderTargetHintMarker(){
+    if(mapTargetGroup) mapTargetGroup.innerHTML = '';
+    targetMarkers = [];
+    if(!hints.stationCode) return;
+
+    var c = COORDS[target];
+    var codeMap = STATION_CODES[target] || {};
+
+    var g = document.createElementNS(SVG_NS, 'g');
+    g.setAttribute('class', 'target-hint-point');
+
+    var clusterWidth = renderChipBadges(g, c, codeMap);
+
+    var ring = document.createElementNS(SVG_NS, 'circle');
+    ring.setAttribute('cx', c[0]);
+    ring.setAttribute('cy', c[1]);
+    ring.setAttribute('r', clusterWidth / 2 + 4);
+    ring.setAttribute('class', 'target-hint-ring');
+    g.insertBefore(ring, g.firstChild);
+
+    if(hints.initial){
+      var placement = pickLabelPlacement(c, target.charAt(0), clusterWidth / 2 + 3);
+      var text = document.createElementNS(SVG_NS, 'text');
+      text.setAttribute('x', placement.x);
+      text.setAttribute('y', placement.y + placement.dir.dy);
+      text.setAttribute('text-anchor', placement.dir.anchor);
+      text.setAttribute('class', 'guess-label target-hint-label');
+      text.textContent = target.charAt(0) + '…';
+      g.appendChild(text);
+    }
+
+    mapTargetGroup.appendChild(g);
+    targetMarkers = [{ g: g, cx: c[0], cy: c[1] }];
+    updateMarkerScale();
+  }
+
+  // Single-source BFS over the station graph: returns a Map of every station's
+  // hop count (number of stops on the shortest path) away from `source`.
+  // Run once per puzzle from the target, then every guess is an O(1) lookup —
+  // this also guarantees every guess is measured against the exact same
+  // shortest-path tree instead of being recomputed (and potentially drifting)
+  // guess by guess.
+  function computeHopCounts(source){
+    var dist = new Map([[source, 0]]);
+    var queue = [source];
+    for(var head = 0; head < queue.length; head++){
+      var cur = queue[head];
+      var d = dist.get(cur);
+      var neighbors = graph[cur] || new Set();
+      neighbors.forEach(function(n){
+        if(!dist.has(n)){
+          dist.set(n, d + 1);
+          queue.push(n);
+        }
+      });
+    }
+    return dist;
   }
 
   function bearing(a, b){
@@ -386,10 +1052,72 @@
     return dirs[Math.round(deg / 45) % 8];
   }
 
+  var MAX_GUESSES = 6;
+
+  // --- Daily vs Practice mode --------------------------------------------
+  var MODE = 'daily';
+  var DAILY_STORAGE_KEY = 'mrtle_daily_v1';
+  var DAILY_EPOCH = '2026-07-21'; // "Daily #1" — arbitrary stable reference point for numbering
+
+  // Today's calendar date as observed in Singapore (UTC+8, no DST), regardless
+  // of the visitor's own timezone — this is what makes the daily the same
+  // puzzle for everyone, and what makes it roll over at 00:00 SGT specifically.
+  var SGT_DATE_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Singapore', year: 'numeric', month: '2-digit', day: '2-digit' });
+  function sgtDateString(date){
+    return SGT_DATE_FMT.format(date);
+  }
+
+  function parseISODateUTC(dateStr){
+    var parts = dateStr.split('-').map(Number);
+    return Date.UTC(parts[0], parts[1] - 1, parts[2]);
+  }
+
+  function dailyNumberForDate(dateStr){
+    return Math.floor((parseISODateUTC(dateStr) - parseISODateUTC(DAILY_EPOCH)) / 86400000) + 1;
+  }
+
+  // Deterministic string hash → same station picked on every device for the
+  // same calendar date, with no server involved.
+  function hashString(str){
+    var h = 0;
+    for(var i = 0; i < str.length; i++){
+      h = (h * 31 + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+  }
+
+  function dailyTargetForDate(dateStr){
+    return STATION_NAMES[hashString(dateStr) % STATION_NAMES.length];
+  }
+
+  // Singapore has a fixed +8h offset year-round (no DST), so shifting the
+  // timestamp by exactly that much and reading it back as if it were UTC
+  // reliably gives SGT wall-clock fields.
+  function msUntilNextSgtMidnight(){
+    var now = new Date();
+    var shifted = new Date(now.getTime() + 8 * 3600000);
+    var nextShiftedMidnight = Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth(), shifted.getUTCDate() + 1);
+    return (nextShiftedMidnight - 8 * 3600000) - now.getTime();
+  }
+
+  function formatCountdown(ms){
+    var totalSec = Math.max(0, Math.floor(ms / 1000));
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    function pad(n){ return (n < 10 ? '0' : '') + n; }
+    return pad(h) + ':' + pad(m) + ':' + pad(s);
+  }
+
   var target = null;
+  var hopCounts = null;
+  var maxHop = 0;
   var guessed = new Set();
+  var guessesData = []; // chronological order, oldest first
   var guessCount = 0;
   var won = false;
+  var gameOver = false;
+  var hints = { lineColor: false, stationCode: false, initial: false };
 
   var els = {
     input: document.getElementById('guessInput'),
@@ -398,11 +1126,29 @@
     error: document.getElementById('inputError'),
     list: document.getElementById('guessList'),
     count: document.getElementById('guessCount'),
+    resultBtn: document.getElementById('resultBtn'),
     resetBtn: document.getElementById('resetBtn'),
+    dailyTabBtn: document.getElementById('dailyTabBtn'),
+    practiceTabBtn: document.getElementById('practiceTabBtn'),
+    modeInfo: document.getElementById('modeInfo'),
     guessBtn: document.getElementById('guessBtn'),
+    hintLineBtn: document.getElementById('hintLineBtn'),
+    hintLineNameBtn: document.getElementById('hintLineNameBtn'),
+    hintInitialBtn: document.getElementById('hintInitialBtn'),
+    hintReveals: document.getElementById('hintReveals'),
+    mrtMap: document.getElementById('mrtMap'),
+    mapZoomInBtn: document.getElementById('mapZoomInBtn'),
+    mapZoomOutBtn: document.getElementById('mapZoomOutBtn'),
+    mapResetBtn: document.getElementById('mapResetBtn'),
+    winOverlay: document.getElementById('winOverlay'),
     winBanner: document.getElementById('winBanner'),
+    winCloseBtn: document.getElementById('winCloseBtn'),
+    winEyebrow: document.getElementById('winEyebrow'),
     winStation: document.getElementById('winStation'),
     winMeta: document.getElementById('winMeta'),
+    resultLegend: document.getElementById('resultLegend'),
+    resultGrid: document.getElementById('resultGrid'),
+    copyResultBtn: document.getElementById('copyResultBtn'),
     playAgainBtn: document.getElementById('playAgainBtn'),
     srLive: document.getElementById('srLive')
   };
@@ -410,23 +1156,103 @@
   var activeIndex = -1;
   var currentMatches = [];
 
-  function newPuzzle(){
-    target = STATION_NAMES[Math.floor(Math.random() * STATION_NAMES.length)];
+  function newPuzzle(explicitTarget){
+    target = explicitTarget || STATION_NAMES[Math.floor(Math.random() * STATION_NAMES.length)];
+    hopCounts = computeHopCounts(target);
+    maxHop = Math.max.apply(null, Array.from(hopCounts.values()));
     guessed = new Set();
+    guessesData = [];
     guessCount = 0;
     won = false;
+    gameOver = false;
+    hints = { lineColor: false, stationCode: false, initial: false };
     els.list.innerHTML = '';
-    els.winBanner.hidden = true;
+    if(mapGuessGroup) mapGuessGroup.innerHTML = '';
+    if(mapTargetGroup) mapTargetGroup.innerHTML = '';
+    mapMarkers = [];
+    targetMarkers = [];
+    placedLabelBoxes = [];
+    if(mapView) resetMapView();
+    els.winOverlay.hidden = true;
+    els.winBanner.classList.remove('lost');
+    els.winEyebrow.textContent = 'ARRIVED';
+    els.resultGrid.textContent = '';
+    els.resultBtn.disabled = true;
     els.input.value = '';
     els.input.disabled = false;
     els.guessBtn.disabled = false;
     els.error.textContent = '';
+    els.hintLineBtn.disabled = false;
+    els.hintLineNameBtn.disabled = true;
+    els.hintInitialBtn.disabled = true;
+    els.hintReveals.innerHTML = '';
     updateCount();
     els.input.focus();
   }
 
+  // Persists just enough to replay a Daily session: which stations were
+  // guessed (fed back through submitGuess in order) and which hints were
+  // bought. No-ops outside Daily mode so Practice never touches storage.
+  function saveDailyState(){
+    if(MODE !== 'daily') return;
+    var data = {
+      date: sgtDateString(new Date()),
+      guesses: guessesData.map(function(g){ return g.name; }),
+      hints: { lineColor: hints.lineColor, stationCode: hints.stationCode, initial: hints.initial }
+    };
+    try { localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(data)); } catch(e){ /* storage unavailable — daily just won't persist */ }
+  }
+
+  function updateModeTabs(){
+    els.dailyTabBtn.classList.toggle('active', MODE === 'daily');
+    els.dailyTabBtn.setAttribute('aria-selected', MODE === 'daily' ? 'true' : 'false');
+    els.practiceTabBtn.classList.toggle('active', MODE === 'practice');
+    els.practiceTabBtn.setAttribute('aria-selected', MODE === 'practice' ? 'true' : 'false');
+    els.resetBtn.disabled = MODE === 'daily';
+    els.resetBtn.title = MODE === 'daily' ? 'The daily station resets automatically at 00:00 SGT' : '';
+  }
+
+  function updateModeInfo(){
+    if(MODE === 'daily'){
+      var todayStr = sgtDateString(new Date());
+      els.modeInfo.textContent = 'Daily #' + dailyNumberForDate(todayStr) + ' · resets in ' + formatCountdown(msUntilNextSgtMidnight());
+    } else {
+      els.modeInfo.textContent = 'Practice — unlimited random puzzles';
+    }
+  }
+
+  function startPractice(){
+    MODE = 'practice';
+    updateModeTabs();
+    newPuzzle();
+    updateModeInfo();
+  }
+
+  function startDaily(){
+    MODE = 'daily';
+    updateModeTabs();
+    var todayStr = sgtDateString(new Date());
+    newPuzzle(dailyTargetForDate(todayStr));
+
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(DAILY_STORAGE_KEY) || 'null'); } catch(e){ saved = null; }
+
+    if(saved && saved.date === todayStr && Array.isArray(saved.guesses)){
+      // Hints first, then replay guesses — if the saved game had already
+      // ended, the win/loss branch inside submitGuess disables every hint
+      // button again, which must be the last word on their state.
+      if(saved.hints){
+        if(saved.hints.lineColor) applyHintLineColor();
+        if(saved.hints.stationCode) applyHintStationCode();
+        if(saved.hints.initial) applyHintInitial();
+      }
+      saved.guesses.forEach(function(name){ submitGuess(name); });
+    }
+    updateModeInfo();
+  }
+
   function updateCount(){
-    els.count.textContent = guessCount + (guessCount === 1 ? ' guess' : ' guesses');
+    els.count.textContent = guessCount + '/' + MAX_GUESSES + (guessCount === 1 ? ' guess' : ' guesses');
   }
 
   function closeSuggestions(){
@@ -448,7 +1274,8 @@
     els.suggestions.innerHTML = '';
     currentMatches.forEach(function(name, i){
       var li = document.createElement('li');
-      li.textContent = name;
+      li.innerHTML = '<span class="suggestion-name">' + name + '</span>' +
+        '<span class="suggestion-badges">' + badgesFor(name) + '</span>';
       li.id = 'opt-' + i;
       li.setAttribute('role', 'option');
       li.setAttribute('aria-selected', 'false');
@@ -488,9 +1315,13 @@
     else if(e.key === 'ArrowUp'){ e.preventDefault(); moveActive(-1); }
     else if(e.key === 'Escape'){ closeSuggestions(); }
     else if(e.key === 'Enter'){
-      if(!els.suggestions.hidden && activeIndex >= 0){
+      // With the dropdown open, Enter submits the highlighted suggestion —
+      // or, if the user hasn't arrowed to one yet, the top-most match.
+      if(!els.suggestions.hidden && currentMatches.length){
         e.preventDefault();
-        selectSuggestion(currentMatches[activeIndex]);
+        var chosen = currentMatches[activeIndex >= 0 ? activeIndex : 0];
+        closeSuggestions();
+        if(!gameOver) submitGuess(chosen);
       }
     }
   });
@@ -531,23 +1362,25 @@
     return wrap;
   }
 
-  function makeLineTile(guessName, targetName){
-    var guessLines = stationLines[guessName];
-    var targetLines = stationLines[targetName];
-    var shared = [];
-    guessLines.forEach(function(l){ if(targetLines.has(l)) shared.push(l); });
+  // Colour is deliberately withheld until the "reveal line colour" hint is
+  // bought — otherwise the dot colour alone would give away which line the
+  // target sits on, letting players triangulate through interchanges without
+  // ever needing the compass/stop tiles.
+  function makeLineTile(sharedLines){
     var wrap = document.createElement('div');
     wrap.className = 'tile lineflag';
     var dots = '';
-    if(shared.length){
-      shared.forEach(function(code){
-        dots += '<span class="dot lit" style="color:' + LINE_COLORS[code] + ';background:' + LINE_COLORS[code] + '" title="' + code + '"></span>';
+    if(sharedLines.length){
+      sharedLines.forEach(function(code){
+        var color = hints.lineColor ? LINE_COLORS[code] : '#eef1ee';
+        var title = hints.lineColor ? code : 'Shared line — use a hint to reveal which';
+        dots += '<span class="dot lit" style="color:' + color + ';background:' + color + '" title="' + title + '"></span>';
       });
     } else {
       dots += '<span class="dot" title="No shared line"></span>';
     }
-    wrap.innerHTML = '<div class="dots" role="img" aria-label="' + (shared.length ? 'Shares line: ' + shared.join(', ') : 'No shared line') + '">' + dots + '</div>' +
-      '<span class="tile-cap">' + (shared.length ? 'same line' : 'diff line') + '</span>';
+    wrap.innerHTML = '<div class="dots" role="img" aria-label="' + (sharedLines.length ? 'Shares a line with the target' : 'No shared line') + '">' + dots + '</div>' +
+      '<span class="tile-cap">' + (sharedLines.length ? 'same line' : 'diff line') + '</span>';
     return wrap;
   }
 
@@ -560,6 +1393,116 @@
 
   function announce(text){
     els.srLive.textContent = text;
+  }
+
+  function renderGuessRow(g){
+    var row = document.createElement('li');
+    row.className = 'row' + (g.isHit ? ' arrived' : '');
+
+    var nameCol = document.createElement('div');
+    nameCol.className = 'row-name';
+    nameCol.innerHTML = '<span class="name">' + g.name + '</span><div class="badges">' + badgesFor(g.name) + '</div>';
+
+    var tiles = document.createElement('div');
+    tiles.className = 'tiles';
+    tiles.appendChild(makeCompassTile(g.deg, g.isHit));
+    tiles.appendChild(makeStopTile(g.distance));
+    // On the hit itself, every one of the station's own lines trivially
+    // "matches" — that's not useful signal, so show a single dot instead of
+    // one per line (which reads as a rendering glitch, not information).
+    tiles.appendChild(makeLineTile(g.isHit ? g.sharedLines.slice(0, 1) : g.sharedLines));
+
+    row.appendChild(nameCol);
+    row.appendChild(tiles);
+    return row;
+  }
+
+  // Rebuilds the whole list from guessesData — needed because buying the
+  // line-colour hint mid-game has to recolour every dot already on screen,
+  // not just the next guess.
+  function renderGuessList(){
+    els.list.innerHTML = '';
+    for(var i = guessesData.length - 1; i >= 0; i--){
+      els.list.appendChild(renderGuessRow(guessesData[i]));
+    }
+  }
+
+  // Closeness tier: how many hops away, scaled against the worst-case
+  // distance for this puzzle — greener the closer, so the whole column reads
+  // as a heat gradient (and the winning guess lands on the same tier as a
+  // "very close" guess, so the last row is naturally all-green, Wordle-style).
+  var CLOSENESS_EMOJI = ['🟩', '🟨', '🟧', '🟥'];
+  function closenessTier(distance){
+    var ratio = maxHop > 0 ? 1 - (distance / maxHop) : 1;
+    if(ratio >= 0.85) return 0;
+    if(ratio >= 0.6) return 1;
+    if(ratio >= 0.3) return 2;
+    return 3;
+  }
+  function closenessSquare(distance){ return CLOSENESS_EMOJI[closenessTier(distance)]; }
+
+  // Rendered once — the legend never changes game to game, so it's built as
+  // real markup (one rule per line) rather than packed into a single string.
+  function renderResultLegend(){
+    els.resultLegend.innerHTML =
+      '<li><span class="swatch">🟩🟨🟧🟥</span><span>Closeness (green = hottest)</span></li>' +
+      '<li><span class="swatch">⚪</span><span>Same line</span></li>' +
+      '<li><span class="swatch">⚫</span><span>Different line</span></li>' +
+      '<li><span class="swatch">✅</span><span>Correct station</span></li>';
+  }
+
+  // White/black dot mirrors the in-game default (colour only appears once the
+  // line-colour hint is bought), so the shared text never leaks more than an
+  // un-hinted board would show. The hit itself gets its own checkmark block
+  // rather than just another green square, so it reads as "the answer", not
+  // "a very close guess".
+  function buildResultGridLines(){
+    // A failed run's "X/6" score line already says it wasn't solved — no
+    // need for a trailing ❌ row on top of that.
+    return guessesData.map(function(g){
+      if(g.isHit) return '✅⚪';
+      return closenessSquare(g.distance) + (g.sharedLines.length ? '⚪' : '⚫');
+    });
+  }
+
+  function buildResultScoreLine(){
+    var hintsUsed = (hints.lineColor ? 1 : 0) + (hints.stationCode ? 1 : 0) + (hints.initial ? 1 : 0);
+    return (won ? guessCount : 'X') + '/' + MAX_GUESSES +
+      (hintsUsed ? ' · ' + hintsUsed + ' hint' + (hintsUsed === 1 ? '' : 's') + ' used' : '');
+  }
+
+  // Kept legend-free by design — the copied text is meant for pasting into a
+  // chat, where the legend would just be noise after the first share.
+  function buildResultText(){
+    var header = MODE === 'daily'
+      ? 'GuessMRTLe Daily #' + dailyNumberForDate(sgtDateString(new Date())) + ' 🚇'
+      : 'GuessMRTLe Practice 🚇';
+    return header + '\n' + buildResultScoreLine() +
+      '\n\n' + buildResultGridLines().join('\n');
+  }
+
+  function copyViaExecCommand(text){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(err){ ok = false; }
+    document.body.removeChild(ta);
+    return ok ? Promise.resolve() : Promise.reject(new Error('Copy failed'));
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      // Some browsers/contexts (e.g. no secure origin, denied permission) reject
+      // the async Clipboard API even though it's present — fall back rather
+      // than surfacing "Copy failed" when the older approach would work.
+      return navigator.clipboard.writeText(text).catch(function(){ return copyViaExecCommand(text); });
+    }
+    return copyViaExecCommand(text);
   }
 
   function submitGuess(name){
@@ -576,36 +1519,53 @@
     guessCount++;
     updateCount();
 
-    var distance = bfsDistance(name, target);
+    var distance = hopCounts.get(name);
     var isHit = distance === 0;
     var deg = isHit ? 0 : bearing(name, target);
+    var targetLines = stationLines[target];
+    var sharedLines = Array.from(stationLines[name]).filter(function(l){ return targetLines.has(l); });
 
-    var row = document.createElement('li');
-    row.className = 'row' + (isHit ? ' arrived' : '');
+    var entry = { name: name, distance: distance, deg: deg, isHit: isHit, sharedLines: sharedLines };
+    guessesData.push(entry);
+    els.list.insertBefore(renderGuessRow(entry), els.list.firstChild);
+    addMapMarker(entry);
+    fitMapToGuesses();
+    saveDailyState();
 
-    var nameCol = document.createElement('div');
-    nameCol.className = 'row-name';
-    nameCol.innerHTML = '<span class="name">' + name + '</span><div class="badges">' + badgesFor(name) + '</div>';
-
-    var tiles = document.createElement('div');
-    tiles.className = 'tiles';
-    tiles.appendChild(makeCompassTile(deg, isHit));
-    tiles.appendChild(makeStopTile(distance));
-    tiles.appendChild(makeLineTile(name, target));
-
-    row.appendChild(nameCol);
-    row.appendChild(tiles);
-    els.list.insertBefore(row, els.list.firstChild);
-
-    announce(name + ': ' + (isHit ? 'arrived at the hidden station.' : distance + (distance === 1 ? ' stop away, direction ' : ' stops away, direction ') + compassLabel(deg) + ', ' + (Array.from(stationLines[name]).some(function(l){return stationLines[target].has(l);}) ? 'same line as target.' : 'no shared line.')));
+    announce(name + ': ' + (isHit ? 'arrived at the hidden station.' : distance + (distance === 1 ? ' stop away, direction ' : ' stops away, direction ') + compassLabel(deg) + ', ' + (sharedLines.length ? 'same line as target.' : 'no shared line.')));
 
     if(isHit){
       won = true;
+      gameOver = true;
       els.input.disabled = true;
       els.guessBtn.disabled = true;
+      els.hintLineBtn.disabled = true;
+      els.hintLineNameBtn.disabled = true;
+      els.hintInitialBtn.disabled = true;
+      els.winEyebrow.textContent = 'ARRIVED';
+      els.winBanner.classList.remove('lost');
       els.winStation.textContent = target;
       els.winMeta.textContent = 'Found in ' + guessCount + (guessCount === 1 ? ' guess.' : ' guesses.');
-      els.winBanner.hidden = false;
+      els.resultGrid.textContent = buildResultScoreLine() + '\n\n' + buildResultGridLines().join('\n');
+      els.resultBtn.disabled = false;
+      els.playAgainBtn.textContent = MODE === 'daily' ? 'Close' : 'Play again';
+      els.winOverlay.hidden = false;
+    } else if(guessCount >= MAX_GUESSES){
+      gameOver = true;
+      els.input.disabled = true;
+      els.guessBtn.disabled = true;
+      els.hintLineBtn.disabled = true;
+      els.hintLineNameBtn.disabled = true;
+      els.hintInitialBtn.disabled = true;
+      els.winEyebrow.textContent = 'OUT OF GUESSES';
+      els.winBanner.classList.add('lost');
+      els.winStation.textContent = target;
+      els.winMeta.textContent = 'Out of guesses — the station was ' + target + '.';
+      els.resultGrid.textContent = buildResultScoreLine() + '\n\n' + buildResultGridLines().join('\n');
+      els.resultBtn.disabled = false;
+      els.playAgainBtn.textContent = MODE === 'daily' ? 'Close' : 'Play again';
+      els.winOverlay.hidden = false;
+      announce('Out of guesses. The station was ' + target + '.');
     }
 
     els.input.value = '';
@@ -614,17 +1574,157 @@
 
   els.form.addEventListener('submit', function(e){
     e.preventDefault();
-    if(won) return;
+    if(gameOver) return;
     var val = els.input.value.trim();
     if(!val) return;
     var match = STATION_NAMES.find(function(n){ return n.toLowerCase() === val.toLowerCase(); });
     submitGuess(match || val);
   });
 
-  els.resetBtn.addEventListener('click', newPuzzle);
-  els.playAgainBtn.addEventListener('click', newPuzzle);
+  function addHintReveal(text){
+    var span = document.createElement('span');
+    span.className = 'hint-reveal';
+    span.textContent = text;
+    els.hintReveals.appendChild(span);
+  }
 
-  newPuzzle();
+  // Hints unlock in order — each one is strictly stronger than the last, so
+  // buying #2 or #3 without #1 would let a player skip straight to the
+  // biggest giveaway. The state-mutating half of each is split out from the
+  // click handler so a restored Daily session can re-apply saved hints
+  // without needing to fake a click.
+  function applyHintLineColor(){
+    hints.lineColor = true;
+    els.hintLineBtn.disabled = true;
+    els.hintLineNameBtn.disabled = false;
+    renderGuessList();
+    announce('Hint used: shared-line colour revealed.');
+  }
+
+  // Hint 2 and 3 both reveal the target itself on the map (its code badges,
+  // then its first letter) rather than spelling it out in the sidebar — the
+  // sidebar chip just points you there.
+  function applyHintStationCode(){
+    hints.stationCode = true;
+    els.hintLineNameBtn.disabled = true;
+    els.hintInitialBtn.disabled = false;
+    renderTargetHintMarker();
+    addHintReveal('Station code revealed on the map');
+    announce('Hint used: the target station’s code is now shown on the map.');
+  }
+
+  function applyHintInitial(){
+    hints.initial = true;
+    els.hintInitialBtn.disabled = true;
+    renderTargetHintMarker();
+    addHintReveal('First letter revealed on the map');
+    announce('Hint used: the station starts with ' + target.charAt(0) + '.');
+  }
+
+  els.hintLineBtn.addEventListener('click', function(){
+    if(hints.lineColor || gameOver) return;
+    applyHintLineColor();
+    saveDailyState();
+  });
+
+  els.hintLineNameBtn.addEventListener('click', function(){
+    if(!hints.lineColor || hints.stationCode || gameOver) return;
+    applyHintStationCode();
+    saveDailyState();
+  });
+
+  els.hintInitialBtn.addEventListener('click', function(){
+    if(!hints.stationCode || hints.initial || gameOver) return;
+    applyHintInitial();
+    saveDailyState();
+  });
+
+  els.copyResultBtn.addEventListener('click', function(){
+    var original = 'Copy result';
+    copyText(buildResultText()).then(function(){
+      els.copyResultBtn.textContent = 'Copied!';
+      setTimeout(function(){ els.copyResultBtn.textContent = original; }, 1500);
+    }).catch(function(){
+      els.copyResultBtn.textContent = 'Copy failed';
+      setTimeout(function(){ els.copyResultBtn.textContent = original; }, 1500);
+    });
+  });
+
+  els.winCloseBtn.addEventListener('click', function(){ els.winOverlay.hidden = true; });
+  els.winOverlay.addEventListener('click', function(e){
+    if(e.target === els.winOverlay) els.winOverlay.hidden = true;
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !els.winOverlay.hidden) els.winOverlay.hidden = true;
+  });
+
+  els.resultBtn.addEventListener('click', function(){
+    if(!gameOver) return;
+    els.winOverlay.hidden = false;
+  });
+
+  els.resetBtn.addEventListener('click', function(){
+    if(MODE !== 'practice') return;
+    startPractice();
+  });
+  els.playAgainBtn.addEventListener('click', function(){
+    if(MODE === 'daily'){ els.winOverlay.hidden = true; return; }
+    startPractice();
+  });
+
+  // Scrolling the input to the top of the viewport also brings the map (just
+  // below it) into view — a simple way to satisfy both "map centered" and
+  // "input box at the top" without hand-computing scroll offsets.
+  function scrollToBoard(){
+    els.input.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  els.dailyTabBtn.addEventListener('click', function(){
+    if(MODE !== 'daily') startDaily();
+    scrollToBoard();
+  });
+  els.practiceTabBtn.addEventListener('click', function(){
+    if(MODE !== 'practice') startPractice();
+    scrollToBoard();
+  });
+
+  els.mapZoomInBtn.addEventListener('click', function(){
+    var c = mapCenter();
+    zoomMapAt(0.8, c.x, c.y);
+  });
+  els.mapZoomOutBtn.addEventListener('click', function(){
+    var c = mapCenter();
+    zoomMapAt(1.25, c.x, c.y);
+  });
+  els.mapResetBtn.addEventListener('click', resetMapView);
+
+  els.mrtMap.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var p = svgPoint(els.mrtMap, e.clientX, e.clientY);
+    zoomMapAt(e.deltaY > 0 ? 1.15 : 0.87, p.x, p.y);
+  }, { passive: false });
+
+  els.mrtMap.addEventListener('pointerdown', function(e){
+    mapDrag = { startClientX: e.clientX, startClientY: e.clientY, startViewX: mapView.x, startViewY: mapView.y };
+    els.mrtMap.setPointerCapture(e.pointerId);
+  });
+  els.mrtMap.addEventListener('pointermove', function(e){
+    if(!mapDrag) return;
+    var ctm = els.mrtMap.getScreenCTM();
+    var scale = ctm ? 1 / ctm.a : 1;
+    mapView.x = mapDrag.startViewX - (e.clientX - mapDrag.startClientX) * scale;
+    mapView.y = mapDrag.startViewY - (e.clientY - mapDrag.startClientY) * scale;
+    clampMapView();
+    applyMapView();
+  });
+  els.mrtMap.addEventListener('pointerup', function(){ mapDrag = null; });
+  els.mrtMap.addEventListener('pointercancel', function(){ mapDrag = null; });
+
+  renderResultLegend();
+  renderMapBase(els.mrtMap);
+  resetMapView();
+  startDaily();
+  setInterval(updateModeInfo, 1000);
 })();
 </script>
 
