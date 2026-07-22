@@ -97,9 +97,14 @@
   }
   .mode-tab:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
   .mode-info{
-    margin:0 0 16px; text-align:center; font-family:var(--font-display); font-size:11.5px;
+    margin:0 0 8px; text-align:center; font-family:var(--font-display); font-size:11.5px;
     letter-spacing:.06em; color:var(--steel); text-transform:uppercase;
   }
+  .mode-help-btn{
+    background:none; border:none; padding:0; color:var(--amber-bright); font-family:var(--font-body);
+    font-size:12px; text-decoration:underline; cursor:pointer;
+  }
+  .mode-help-btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
 
   details.legend{
     margin:0 0 18px; background:var(--panel); border:1px solid var(--steel-dim);
@@ -175,7 +180,9 @@
   .reset-btn:disabled{ opacity:.4; cursor:not-allowed; }
 
   .hints-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .hints-row[hidden]{ display:none; }
   .hint-reveals{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .hint-reveals[hidden]{ display:none; }
   .hint-reveals:empty{ margin-bottom:0; }
 
   .map-panel{
@@ -359,9 +366,13 @@
 
     <div class="mode-row" role="tablist" aria-label="Game mode">
       <button type="button" class="mode-tab" id="dailyTabBtn" role="tab" aria-selected="false">Daily</button>
+      <button type="button" class="mode-tab" id="hardTabBtn" role="tab" aria-selected="false">Hard</button>
       <button type="button" class="mode-tab" id="practiceTabBtn" role="tab" aria-selected="false">Practice</button>
     </div>
     <p class="mode-info" id="modeInfo"></p>
+    <p style="text-align:center; margin:-4px 0 16px;">
+      <button type="button" class="mode-help-btn" id="hardHelpBtn" hidden>What's different in Hard mode?</button>
+    </p>
 
     <details class="legend">
       <summary>How to read the board</summary>
@@ -397,7 +408,7 @@
     </form>
     <p class="input-error" id="inputError" role="alert"></p>
 
-    <div class="hints-row">
+    <div class="hints-row" id="hintsRow">
       <button type="button" class="reset-btn" id="hintLineBtn">Hint 1: reveal lit dot colour</button>
       <button type="button" class="reset-btn" id="hintLineNameBtn" disabled>Hint 2: reveal station code</button>
       <button type="button" class="reset-btn" id="hintInitialBtn" disabled>Hint 3: reveal first letter</button>
@@ -437,6 +448,23 @@
         <div class="win-actions">
           <button type="button" class="reset-btn primary" id="copyResultBtn">Copy result</button>
           <button type="button" class="reset-btn primary" id="playAgainBtn">Play again</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="hardGuideOverlay" hidden>
+      <div class="win-banner" id="hardGuideBanner" role="dialog" aria-modal="true" aria-labelledby="hardGuideTitle">
+        <button type="button" class="modal-close" id="hardGuideCloseBtn" aria-label="Close">&times;</button>
+        <p class="win-eyebrow">HARD MODE</p>
+        <p class="win-station" id="hardGuideTitle" style="font-size:19px;">What's different</p>
+        <ul class="result-legend">
+          <li><span class="swatch">🗺️</span><span>The map shows no connecting lines — just guessed stations, floating with no network context</span></li>
+          <li><span class="swatch">⚪</span><span>No same-line / different-line indicator on any guess</span></li>
+          <li><span class="swatch">💡</span><span>No hints available at all</span></li>
+          <li><span class="swatch">🎯</span><span>Its own independent target and saved progress — a separate puzzle from regular Daily</span></li>
+        </ul>
+        <div class="win-actions">
+          <button type="button" class="reset-btn primary" id="hardGuideOkBtn">Got it</button>
         </div>
       </div>
     </div>
@@ -705,6 +733,7 @@
 
   var mapGuessGroup = null;
   var mapTargetGroup = null;
+  var mapLinesGroup = null;
 
   // Drawn once at load — just the line paths, no per-station dots. Stations
   // stay invisible until guessed, otherwise the map would give away every
@@ -720,16 +749,16 @@
     land.setAttribute('class', 'map-land');
     svg.appendChild(land);
 
-    var linesGroup = document.createElementNS(SVG_NS, 'g');
+    mapLinesGroup = document.createElementNS(SVG_NS, 'g');
     LINE_SEQUENCES.forEach(function(line){
       var points = line.seq.map(function(name){ return COORDS[name].join(','); }).join(' ');
       var poly = document.createElementNS(SVG_NS, 'polyline');
       poly.setAttribute('points', points);
       poly.setAttribute('class', 'line-path');
       poly.setAttribute('stroke', LINE_COLORS[line.code]);
-      linesGroup.appendChild(poly);
+      mapLinesGroup.appendChild(poly);
     });
-    svg.appendChild(linesGroup);
+    svg.appendChild(mapLinesGroup);
 
     mapGuessGroup = document.createElementNS(SVG_NS, 'g');
     svg.appendChild(mapGuessGroup);
@@ -1054,10 +1083,17 @@
 
   var MAX_GUESSES = 6;
 
-  // --- Daily vs Practice mode --------------------------------------------
+  // --- Daily / Hard / Practice mode ---------------------------------------
   var MODE = 'daily';
-  var DAILY_STORAGE_KEY = 'mrtle_daily_v1';
   var DAILY_EPOCH = '2026-07-21'; // "Daily #1" — arbitrary stable reference point for numbering
+
+  // Daily and Hard are both "today's puzzle", just with independent targets
+  // and independent saved progress — so completing one has no bearing on
+  // the other and they can't be compared to cheat one from the other.
+  var DAILY_VARIANTS = {
+    daily: { storageKey: 'mrtle_daily_v1', seedSuffix: '' },
+    hard: { storageKey: 'mrtle_daily_hard_v1', seedSuffix: '::hard' }
+  };
 
   // Today's calendar date as observed in Singapore (UTC+8, no DST), regardless
   // of the visitor's own timezone — this is what makes the daily the same
@@ -1086,8 +1122,8 @@
     return Math.abs(h);
   }
 
-  function dailyTargetForDate(dateStr){
-    return STATION_NAMES[hashString(dateStr) % STATION_NAMES.length];
+  function dailyTargetForDate(dateStr, seedSuffix){
+    return STATION_NAMES[hashString(dateStr + (seedSuffix || '')) % STATION_NAMES.length];
   }
 
   // Singapore has a fixed +8h offset year-round (no DST), so shifting the
@@ -1129,9 +1165,15 @@
     resultBtn: document.getElementById('resultBtn'),
     resetBtn: document.getElementById('resetBtn'),
     dailyTabBtn: document.getElementById('dailyTabBtn'),
+    hardTabBtn: document.getElementById('hardTabBtn'),
     practiceTabBtn: document.getElementById('practiceTabBtn'),
     modeInfo: document.getElementById('modeInfo'),
+    hardHelpBtn: document.getElementById('hardHelpBtn'),
+    hardGuideOverlay: document.getElementById('hardGuideOverlay'),
+    hardGuideCloseBtn: document.getElementById('hardGuideCloseBtn'),
+    hardGuideOkBtn: document.getElementById('hardGuideOkBtn'),
     guessBtn: document.getElementById('guessBtn'),
+    hintsRow: document.getElementById('hintsRow'),
     hintLineBtn: document.getElementById('hintLineBtn'),
     hintLineNameBtn: document.getElementById('hintLineNameBtn'),
     hintInitialBtn: document.getElementById('hintInitialBtn'),
@@ -1190,58 +1232,96 @@
     els.input.focus();
   }
 
-  // Persists just enough to replay a Daily session: which stations were
+  // Persists just enough to replay a Daily/Hard session: which stations were
   // guessed (fed back through submitGuess in order) and which hints were
-  // bought. No-ops outside Daily mode so Practice never touches storage.
+  // bought. No-ops in Practice, which never touches storage.
   function saveDailyState(){
-    if(MODE !== 'daily') return;
+    var variant = DAILY_VARIANTS[MODE];
+    if(!variant) return;
     var data = {
       date: sgtDateString(new Date()),
       guesses: guessesData.map(function(g){ return g.name; }),
       hints: { lineColor: hints.lineColor, stationCode: hints.stationCode, initial: hints.initial }
     };
-    try { localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(data)); } catch(e){ /* storage unavailable — daily just won't persist */ }
+    try { localStorage.setItem(variant.storageKey, JSON.stringify(data)); } catch(e){ /* storage unavailable — daily just won't persist */ }
   }
 
   function updateModeTabs(){
     els.dailyTabBtn.classList.toggle('active', MODE === 'daily');
     els.dailyTabBtn.setAttribute('aria-selected', MODE === 'daily' ? 'true' : 'false');
+    els.hardTabBtn.classList.toggle('active', MODE === 'hard');
+    els.hardTabBtn.setAttribute('aria-selected', MODE === 'hard' ? 'true' : 'false');
     els.practiceTabBtn.classList.toggle('active', MODE === 'practice');
     els.practiceTabBtn.setAttribute('aria-selected', MODE === 'practice' ? 'true' : 'false');
-    els.resetBtn.disabled = MODE === 'daily';
-    els.resetBtn.title = MODE === 'daily' ? 'The daily station resets automatically at 00:00 SGT' : '';
+    els.resetBtn.disabled = MODE !== 'practice';
+    els.resetBtn.title = MODE !== 'practice' ? 'The daily station resets automatically at 00:00 SGT' : '';
+    els.hardHelpBtn.hidden = MODE !== 'hard';
+  }
+
+  // Shown automatically the first time this page load switches into Hard
+  // mode — a plain in-memory flag, not localStorage, so it reappears on a
+  // fresh visit/reload rather than being a permanent one-time thing.
+  var hardGuideShownThisSession = false;
+  function showHardGuide(){
+    els.hardGuideOverlay.hidden = false;
   }
 
   function updateModeInfo(){
-    if(MODE === 'daily'){
+    if(DAILY_VARIANTS[MODE]){
       var todayStr = sgtDateString(new Date());
-      els.modeInfo.textContent = 'Daily #' + dailyNumberForDate(todayStr) + ' · resets in ' + formatCountdown(msUntilNextSgtMidnight());
+      var label = MODE === 'hard' ? 'Hard Daily' : 'Daily';
+      els.modeInfo.textContent = label + ' #' + dailyNumberForDate(todayStr) + ' · resets in ' + formatCountdown(msUntilNextSgtMidnight());
     } else {
       els.modeInfo.textContent = 'Practice — unlimited random puzzles';
     }
   }
 
+  // Hard mode has no hints at all (nothing to reveal — there's no lit dot,
+  // and the map/first-letter reveals would undercut the point of "hard").
+  function updateHintsVisibility(){
+    var show = MODE !== 'hard';
+    els.hintsRow.hidden = !show;
+    els.hintReveals.hidden = !show;
+  }
+
+  // Hard mode shows guessed stations on the map with no connecting lines —
+  // the network shape/context is gone, only the STATION_CODES badges remain
+  // once you've actually guessed one.
+  function updateMapLinesVisibility(){
+    if(mapLinesGroup) mapLinesGroup.style.display = MODE === 'hard' ? 'none' : '';
+  }
+
   function startPractice(){
     MODE = 'practice';
     updateModeTabs();
+    updateHintsVisibility();
+    updateMapLinesVisibility();
+    renderResultLegend();
     newPuzzle();
     updateModeInfo();
   }
 
-  function startDaily(){
-    MODE = 'daily';
+  // Shared by Daily and Hard: same mechanics (deterministic target for the
+  // day, restore saved progress), just a different variant config.
+  function startDailyVariant(mode){
+    MODE = mode;
     updateModeTabs();
+    updateHintsVisibility();
+    updateMapLinesVisibility();
+    renderResultLegend();
+
+    var variant = DAILY_VARIANTS[mode];
     var todayStr = sgtDateString(new Date());
-    newPuzzle(dailyTargetForDate(todayStr));
+    newPuzzle(dailyTargetForDate(todayStr, variant.seedSuffix));
 
     var saved = null;
-    try { saved = JSON.parse(localStorage.getItem(DAILY_STORAGE_KEY) || 'null'); } catch(e){ saved = null; }
+    try { saved = JSON.parse(localStorage.getItem(variant.storageKey) || 'null'); } catch(e){ saved = null; }
 
     if(saved && saved.date === todayStr && Array.isArray(saved.guesses)){
       // Hints first, then replay guesses — if the saved game had already
       // ended, the win/loss branch inside submitGuess disables every hint
       // button again, which must be the last word on their state.
-      if(saved.hints){
+      if(saved.hints && mode !== 'hard'){
         if(saved.hints.lineColor) applyHintLineColor();
         if(saved.hints.stationCode) applyHintStationCode();
         if(saved.hints.initial) applyHintInitial();
@@ -1249,7 +1329,15 @@
       saved.guesses.forEach(function(name){ submitGuess(name); });
     }
     updateModeInfo();
+
+    if(mode === 'hard' && !hardGuideShownThisSession){
+      hardGuideShownThisSession = true;
+      showHardGuide();
+    }
   }
+
+  function startDaily(){ startDailyVariant('daily'); }
+  function startHard(){ startDailyVariant('hard'); }
 
   function updateCount(){
     els.count.textContent = guessCount + '/' + MAX_GUESSES + (guessCount === 1 ? ' guess' : ' guesses');
@@ -1407,10 +1495,14 @@
     tiles.className = 'tiles';
     tiles.appendChild(makeCompassTile(g.deg, g.isHit));
     tiles.appendChild(makeStopTile(g.distance));
-    // On the hit itself, every one of the station's own lines trivially
-    // "matches" — that's not useful signal, so show a single dot instead of
-    // one per line (which reads as a rendering glitch, not information).
-    tiles.appendChild(makeLineTile(g.isHit ? g.sharedLines.slice(0, 1) : g.sharedLines));
+    // Hard mode drops the same/different-line tile entirely — direction and
+    // distance are all you get.
+    if(MODE !== 'hard'){
+      // On the hit itself, every one of the station's own lines trivially
+      // "matches" — that's not useful signal, so show a single dot instead of
+      // one per line (which reads as a rendering glitch, not information).
+      tiles.appendChild(makeLineTile(g.isHit ? g.sharedLines.slice(0, 1) : g.sharedLines));
+    }
 
     row.appendChild(nameCol);
     row.appendChild(tiles);
@@ -1443,23 +1535,29 @@
 
   // Rendered once — the legend never changes game to game, so it's built as
   // real markup (one rule per line) rather than packed into a single string.
+  // Re-rendered on every mode switch since Hard mode drops the same/
+  // different-line rules (there's no lit dot in Hard to explain).
   function renderResultLegend(){
-    els.resultLegend.innerHTML =
-      '<li><span class="swatch">🟩🟨🟧🟥</span><span>Closeness (green = hottest)</span></li>' +
-      '<li><span class="swatch">⚪</span><span>Same line</span></li>' +
-      '<li><span class="swatch">⚫</span><span>Different line</span></li>' +
-      '<li><span class="swatch">✅</span><span>Correct station</span></li>';
+    var items = '<li><span class="swatch">🟩🟨🟧🟥</span><span>Closeness (green = hottest)</span></li>';
+    if(MODE !== 'hard'){
+      items += '<li><span class="swatch">⚪</span><span>Same line</span></li>' +
+        '<li><span class="swatch">⚫</span><span>Different line</span></li>';
+    }
+    items += '<li><span class="swatch">✅</span><span>Correct station</span></li>';
+    els.resultLegend.innerHTML = items;
   }
 
   // White/black dot mirrors the in-game default (colour only appears once the
   // line-colour hint is bought), so the shared text never leaks more than an
   // un-hinted board would show. The hit itself gets its own checkmark block
   // rather than just another green square, so it reads as "the answer", not
-  // "a very close guess".
+  // "a very close guess". Hard mode drops the dot entirely, matching how it
+  // has no same/different-line tile during play.
   function buildResultGridLines(){
     // A failed run's "X/6" score line already says it wasn't solved — no
     // need for a trailing ❌ row on top of that.
     return guessesData.map(function(g){
+      if(MODE === 'hard') return g.isHit ? '✅' : closenessSquare(g.distance);
       if(g.isHit) return '✅⚪';
       return closenessSquare(g.distance) + (g.sharedLines.length ? '⚪' : '⚫');
     });
@@ -1474,9 +1572,10 @@
   // Kept legend-free by design — the copied text is meant for pasting into a
   // chat, where the legend would just be noise after the first share.
   function buildResultText(){
-    var header = MODE === 'daily'
-      ? 'GuessMRTLe Daily #' + dailyNumberForDate(sgtDateString(new Date())) + ' 🚇'
-      : 'GuessMRTLe Practice 🚇';
+    var header;
+    if(MODE === 'daily') header = 'GuessMRTLe Daily #' + dailyNumberForDate(sgtDateString(new Date())) + ' 🚇';
+    else if(MODE === 'hard') header = 'GuessMRTLe Hard Daily #' + dailyNumberForDate(sgtDateString(new Date())) + ' 🚇🔥';
+    else header = 'GuessMRTLe Practice 🚇';
     return header + '\n' + buildResultScoreLine() +
       '\n\n' + buildResultGridLines().join('\n') +
       '\n\nhttps://vrospix.github.io/GuessMRTLe/';
@@ -1549,7 +1648,7 @@
       els.winMeta.textContent = 'Found in ' + guessCount + (guessCount === 1 ? ' guess.' : ' guesses.');
       els.resultGrid.textContent = buildResultScoreLine() + '\n\n' + buildResultGridLines().join('\n');
       els.resultBtn.disabled = false;
-      els.playAgainBtn.textContent = MODE === 'daily' ? 'Close' : 'Play again';
+      els.playAgainBtn.textContent = DAILY_VARIANTS[MODE] ? 'Close' : 'Play again';
       els.winOverlay.hidden = false;
     } else if(guessCount >= MAX_GUESSES){
       gameOver = true;
@@ -1564,7 +1663,7 @@
       els.winMeta.textContent = 'Out of guesses — the station was ' + target + '.';
       els.resultGrid.textContent = buildResultScoreLine() + '\n\n' + buildResultGridLines().join('\n');
       els.resultBtn.disabled = false;
-      els.playAgainBtn.textContent = MODE === 'daily' ? 'Close' : 'Play again';
+      els.playAgainBtn.textContent = DAILY_VARIANTS[MODE] ? 'Close' : 'Play again';
       els.winOverlay.hidden = false;
       announce('Out of guesses. The station was ' + target + '.');
     }
@@ -1623,19 +1722,19 @@
   }
 
   els.hintLineBtn.addEventListener('click', function(){
-    if(hints.lineColor || gameOver) return;
+    if(MODE === 'hard' || hints.lineColor || gameOver) return;
     applyHintLineColor();
     saveDailyState();
   });
 
   els.hintLineNameBtn.addEventListener('click', function(){
-    if(!hints.lineColor || hints.stationCode || gameOver) return;
+    if(MODE === 'hard' || !hints.lineColor || hints.stationCode || gameOver) return;
     applyHintStationCode();
     saveDailyState();
   });
 
   els.hintInitialBtn.addEventListener('click', function(){
-    if(!hints.stationCode || hints.initial || gameOver) return;
+    if(MODE === 'hard' || !hints.stationCode || hints.initial || gameOver) return;
     applyHintInitial();
     saveDailyState();
   });
@@ -1655,8 +1754,18 @@
   els.winOverlay.addEventListener('click', function(e){
     if(e.target === els.winOverlay) els.winOverlay.hidden = true;
   });
+
+  els.hardHelpBtn.addEventListener('click', showHardGuide);
+  els.hardGuideCloseBtn.addEventListener('click', function(){ els.hardGuideOverlay.hidden = true; });
+  els.hardGuideOkBtn.addEventListener('click', function(){ els.hardGuideOverlay.hidden = true; });
+  els.hardGuideOverlay.addEventListener('click', function(e){
+    if(e.target === els.hardGuideOverlay) els.hardGuideOverlay.hidden = true;
+  });
+
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && !els.winOverlay.hidden) els.winOverlay.hidden = true;
+    if(e.key !== 'Escape') return;
+    if(!els.winOverlay.hidden) els.winOverlay.hidden = true;
+    if(!els.hardGuideOverlay.hidden) els.hardGuideOverlay.hidden = true;
   });
 
   els.resultBtn.addEventListener('click', function(){
@@ -1669,7 +1778,7 @@
     startPractice();
   });
   els.playAgainBtn.addEventListener('click', function(){
-    if(MODE === 'daily'){ els.winOverlay.hidden = true; return; }
+    if(DAILY_VARIANTS[MODE]){ els.winOverlay.hidden = true; return; }
     startPractice();
   });
 
@@ -1682,6 +1791,10 @@
 
   els.dailyTabBtn.addEventListener('click', function(){
     if(MODE !== 'daily') startDaily();
+    scrollToBoard();
+  });
+  els.hardTabBtn.addEventListener('click', function(){
+    if(MODE !== 'hard') startHard();
     scrollToBoard();
   });
   els.practiceTabBtn.addEventListener('click', function(){
